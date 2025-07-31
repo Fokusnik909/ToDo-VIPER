@@ -15,68 +15,59 @@ protocol TasksListInteractorProtocol: AnyObject {
 
 final class TasksListInteractor: TasksListInteractorProtocol {
     weak var presenter: TasksListPresenterProtocol?
-    private let coreData = CoreDataManager.shared
-    
-    
+
+    private let networkService: NetworkServiceProtocol
+    private let coreDataManager = CoreDataManager.shared
+
+    init(networkService: NetworkServiceProtocol) {
+        self.networkService = networkService
+    }
+
     func fetchTasks() {
-        DispatchQueue.global(qos: .background).async {
-            self.coreData.fetchTasks { tasks in
-                let models = tasks.map { coreData in
-                    TaskModel(id: coreData.id,
-                              title: coreData.title ?? "",
-                              description: coreData.description,
-                              dateCreated: coreData.dateCreated ?? Date(),
-                              isCompleted: coreData.isCompleted,
-                              userId: coreData.userid)
+        coreDataManager.fetchTasks { [weak self] localTasks in
+            guard let self else { return }
+
+            if localTasks.isEmpty {
+                self.networkService.fetchTasks { result in
+                    switch result {
+                    case .success(let dtos):
+                        let models = dtos.map { TaskModel(from: $0) }
+                        self.coreDataManager.addTasks(models)
+                        self.coreDataManager.saveContext()
+
+                        self.coreDataManager.fetchTasks { updated in
+                            let finalModels = updated.map { TaskModel(from: $0) }
+                            self.presenter?.didLoadTasks(finalModels)
+                        }
+
+                    case .failure(let error):
+                        self.presenter?.didFailLoadingTasks(with: error.localizedDescription)
+                    }
                 }
-                
-                DispatchQueue.main.async {
-                    self.presenter?.presentTasks(models)
-                }
+
+            } else {
+                let models = localTasks.map { TaskModel(from: $0) }
+                self.presenter?.didLoadTasks(models)
             }
         }
     }
-    
-    
+
     func searchTasks(query: String) {
-        DispatchQueue.global(qos: .background).async {
-            self.coreData.searchTasks(query: query) { tasks in
-                let models = tasks.map { coreData in
-                    TaskModel(
-                        id: coreData.id,
-                        title: coreData.title ?? "",
-                        description: coreData.descriptionText,
-                        dateCreated: coreData.dateCreated ?? Date(),
-                        isCompleted: coreData.isCompleted,
-                        userId: coreData.userid
-                    )
-                }
-                
-                DispatchQueue.main.async {
-                    self.presenter?.presentTasks(models)
-                }
-            }
+        coreDataManager.searchTasks(query: query) { [weak self] results in
+            let models = results.map { TaskModel(from: $0) }
+            self?.presenter?.didLoadTasks(models)
         }
     }
-    
-    
+
     func toggleTaskCompletion(task: TaskModel) {
-        DispatchQueue.global(qos: .background).async {
-            self.coreData.fetchTasks { all in
-                if let stored = all.first(where: { $0.id == task.id }) {
-                    let updated = TaskModel(
-                        id: stored.id,
-                        title: stored.title ?? "",
-                        description: stored.descriptionText,
-                        dateCreated: stored.dateCreated ?? Date(),
-                        isCompleted: !stored.isCompleted,
-                        userId: stored.userid
-                    )
-                    self.coreData.updateTask(stored, with: updated)
-                    
-                    self.fetchTasks()
-                }
+        coreDataManager.fetchTasks { tasks in
+            if let target = tasks.first(where: { $0.id == task.id }) {
+                var updated = task
+                updated.isCompleted.toggle()
+                self.coreDataManager.updateTask(target, with: updated)
+                self.fetchTasks()
             }
         }
     }
+    
 }

@@ -68,13 +68,21 @@ final class CoreDataManager {
     }
     
     func addTask(from model: TaskModel) {
-        let task = ToDoCoreData(context: viewContext)
-        task.id = model.id
-        task.title = model.title
-        task.descriptionText = model.description
-        task.isCompleted = model.isCompleted
-        task.userid = model.userId
-        task.dateCreated = model.dateCreated
+        let request: NSFetchRequest<ToDoCoreData> = ToDoCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %d", model.id)
+        
+        if let existing = try? viewContext.fetch(request).first {
+            updateTask(existing, with: model)
+        } else {
+            let task = ToDoCoreData(context: viewContext)
+            task.id = model.id
+            task.title = model.title
+            task.descriptionText = model.description
+            task.isCompleted = model.isCompleted
+            task.userid = model.userId
+            task.dateCreated = model.dateCreated
+        }
+        
         saveContext()
     }
     
@@ -91,6 +99,11 @@ final class CoreDataManager {
         saveContext()
     }
     
+    func addTasks(_ models: [TaskModel]) {
+        models.forEach { addTask(from: $0) }
+    }
+
+    
     func searchTasks(query: String, completion: @escaping ([ToDoCoreData]) -> Void) {
             let request: NSFetchRequest<ToDoCoreData> = ToDoCoreData.fetchRequest()
             request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", query)
@@ -102,5 +115,19 @@ final class CoreDataManager {
                 completion([])
             }
         }
+    
+    func deleteAllTasks() {
+        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = ToDoCoreData.fetchRequest()
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+
+        do {
+            try viewContext.execute(deleteRequest)
+            saveContext()
+            print(" Все задачи успешно удалены из Core Data")
+        } catch {
+            print(" Ошибка при удалении всех задач: \(error.localizedDescription)")
+        }
+    }
+
     
 }

@@ -26,13 +26,14 @@ final class TaskCell: UITableViewCell {
     }
 
     func configure(with task: TaskModel) {
-        titleLabel.text = task.title
         descriptionLabel.text = task.description
         dateLabel.text = formatDate(task.dateCreated)
 
+        let titleText = task.title
+
         if task.isCompleted {
             titleLabel.attributedText = NSAttributedString(
-                string: task.title,
+                string: titleText,
                 attributes: [
                     .strikethroughStyle: NSUnderlineStyle.single.rawValue,
                     .foregroundColor: UIColor.secondaryLabel
@@ -40,9 +41,11 @@ final class TaskCell: UITableViewCell {
             )
         } else {
             titleLabel.attributedText = nil
+            titleLabel.text = titleText
             titleLabel.textColor = .label
         }
     }
+
 
     private func setup() {
         backgroundColor = .clear

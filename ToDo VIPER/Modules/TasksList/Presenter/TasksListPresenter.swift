@@ -14,6 +14,8 @@ protocol TasksListPresenterProtocol: AnyObject {
     func didTapAddTask()
     func didSearch(query: String)
     func presentTasks(_ tasks: [TaskModel])
+    func didLoadTasks(_ tasks: [TaskModel])
+    func didFailLoadingTasks(with message: String)
 }
 
 final class TasksListPresenter: TasksListPresenterProtocol {
@@ -54,5 +56,13 @@ final class TasksListPresenter: TasksListPresenterProtocol {
     func presentTasks(_ tasks: [TaskModel]) {
         self.tasks = tasks
         view?.showTasks(tasks)
+    }
+    
+    func didLoadTasks(_ tasks: [TaskModel]) {
+        presentTasks(tasks)
+    }
+
+    func didFailLoadingTasks(with message: String) {
+        view?.showError(message)
     }
 }

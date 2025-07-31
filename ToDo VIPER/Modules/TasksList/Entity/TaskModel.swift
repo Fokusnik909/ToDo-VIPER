@@ -12,6 +12,18 @@ struct TaskModel {
     let title: String
     let description: String?
     let dateCreated: Date
-    let isCompleted: Bool
+    var isCompleted: Bool
     let userId: Int64
 }
+
+extension TaskModel {
+    init(from coreData: ToDoCoreData) {
+        self.id = coreData.id
+        self.title = coreData.title ?? ""
+        self.description = coreData.descriptionText ?? ""
+        self.isCompleted = coreData.isCompleted
+        self.userId = coreData.userid
+        self.dateCreated = coreData.dateCreated ?? Date()
+    }
+}
+
