@@ -25,7 +25,6 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
         super.viewDidLoad()
         setupUI()
         presenter.viewDidLoad()
-//        CoreDataManager.shared.deleteAllTasks()
     }
 
     private func setupUI() {
@@ -77,6 +76,7 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
 
 
     @objc private func addTapped() {
+        print("addTapped")
         presenter.didTapAddTask()
     }
     

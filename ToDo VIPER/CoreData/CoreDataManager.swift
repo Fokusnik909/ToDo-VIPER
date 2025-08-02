@@ -67,11 +67,15 @@ final class CoreDataManager {
             }
         }
     }
-
+    
     func searchTasks(query: String, completion: @escaping ([ToDoCoreData]) -> Void) {
         viewContext.perform {
             let request: NSFetchRequest<ToDoCoreData> = ToDoCoreData.fetchRequest()
-            request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", query)
+            
+            if !query.isEmpty {
+                request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", query)
+            }
+            
             do {
                 let results = try self.viewContext.fetch(request)
                 completion(results)
@@ -81,6 +85,7 @@ final class CoreDataManager {
             }
         }
     }
+
     
     func addTask(from model: TaskModel) {
         let context = newBackgroundContext()
