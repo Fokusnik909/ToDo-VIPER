@@ -35,6 +35,7 @@ final class TasksListPresenter: TasksListPresenterProtocol {
 
     func viewDidLoad() {
         interactor.fetchTasks()
+//        CoreDataManager.shared.deleteAllTasks()
     }
 
     func didSelectTask(_ task: TaskModel) {
