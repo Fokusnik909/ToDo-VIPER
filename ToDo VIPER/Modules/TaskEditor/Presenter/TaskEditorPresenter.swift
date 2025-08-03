@@ -33,10 +33,10 @@ final class TaskEditorPresenter: TaskEditorPresenterProtocol {
     func viewDidLoad() {
         switch mode {
         case .add:
-            view?.editsFields(title: "", description: "")
+            view?.editsFields(title: "", date: Date(), description: "")
         case .edit(let task):
             print(task.title)
-            view?.editsFields(title: task.title, description: task.description ?? "")
+            view?.editsFields(title: task.title, date: task.dateCreated, description: task.description ?? "")
         }
     }
     

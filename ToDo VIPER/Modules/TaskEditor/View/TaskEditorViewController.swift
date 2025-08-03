@@ -7,34 +7,43 @@
 import UIKit
 
 protocol TaskEditorViewProtocol: AnyObject {
-    func editsFields(title: String, description: String)
+    func editsFields(title: String, date: Date, description: String)
 }
 
 final class TaskEditorView: UIViewController, TaskEditorViewProtocol {
     var presenter: TaskEditorPresenterProtocol!
-
+    
     private let titleField: UITextField = {
-            let tf = UITextField()
-            tf.placeholder = "Введите заголовок"
-            tf.font = .systemFont(ofSize: 18, weight: .medium)
-            tf.borderStyle = .roundedRect
-            tf.translatesAutoresizingMaskIntoConstraints = false
-            return tf
-        }()
-
-        private let descriptionView: UITextView = {
-            let des = UITextView()
-            des.font = .systemFont(ofSize: 16)
-            des.layer.borderColor = UIColor.systemGray4.cgColor
-            des.layer.borderWidth = 1
-            des.layer.cornerRadius = 8
-            des.translatesAutoresizingMaskIntoConstraints = false
-            return des
-        }()
-
+        let tf = UITextField()
+        tf.placeholder = "Введите заголовок"
+        tf.font = .systemFont(ofSize: 34, weight: .bold)
+        tf.textColor = .white
+        tf.translatesAutoresizingMaskIntoConstraints = false
+        tf.backgroundColor = .blackTD
+        return tf
+    }()
+    
+    private let dateLabel: UILabel = {
+        let lbl = UILabel()
+        lbl.font = .systemFont(ofSize: 12)
+        lbl.textColor = .grayTextTD
+        lbl.translatesAutoresizingMaskIntoConstraints = false
+        return lbl
+    }()
+    
+    private let descriptionView: UITextView = {
+        let des = UITextView()
+        des.font = .systemFont(ofSize: 16)
+        des.textColor = .white
+        des.backgroundColor = .blackTD
+        des.translatesAutoresizingMaskIntoConstraints = false
+        return des
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
+        navigationItem.largeTitleDisplayMode = .never
         setupUI()
         presenter.viewDidLoad()
     }
@@ -50,8 +59,9 @@ final class TaskEditorView: UIViewController, TaskEditorViewProtocol {
         }
     }
     
-    func editsFields(title: String, description: String) {
+    func editsFields(title: String, date: Date, description: String) {
         titleField.text = title
+        dateLabel.text = date.formattedShort()
         descriptionView.text = description
     }
     
@@ -59,18 +69,23 @@ final class TaskEditorView: UIViewController, TaskEditorViewProtocol {
         view.backgroundColor = .blackTD
         
         view.addSubview(titleField)
+        view.addSubview(dateLabel)
         view.addSubview(descriptionView)
         
         NSLayoutConstraint.activate([
             titleField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
-            titleField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            titleField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            titleField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            titleField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             titleField.heightAnchor.constraint(equalToConstant: 44),
             
-            descriptionView.topAnchor.constraint(equalTo: titleField.bottomAnchor, constant: 16),
-            descriptionView.leadingAnchor.constraint(equalTo: titleField.leadingAnchor),
-            descriptionView.trailingAnchor.constraint(equalTo: titleField.trailingAnchor),
-            descriptionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16)
+            dateLabel.topAnchor.constraint(equalTo: titleField.bottomAnchor, constant: 8),
+            dateLabel.leadingAnchor.constraint(equalTo: titleField.leadingAnchor),
+            dateLabel.trailingAnchor.constraint(equalTo: titleField.trailingAnchor),
+            
+            descriptionView.topAnchor.constraint(equalTo: dateLabel.bottomAnchor, constant: 16),
+            descriptionView.leadingAnchor.constraint(equalTo: dateLabel.leadingAnchor),
+            descriptionView.trailingAnchor.constraint(equalTo: dateLabel.trailingAnchor),
+            descriptionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
         ])
     }
 }

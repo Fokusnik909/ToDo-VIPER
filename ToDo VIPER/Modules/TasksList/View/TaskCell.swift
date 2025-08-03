@@ -59,7 +59,6 @@ final class TaskCell: UITableViewCell {
     }
 
     // MARK: - Configuration
-
     func configure(with task: TaskModel) {
         currentTask = task
 
@@ -86,7 +85,7 @@ final class TaskCell: UITableViewCell {
         }
 
         descriptionLabel.text = task.description
-        dateLabel.text = formatDate(task.dateCreated)
+        dateLabel.text = task.dateCreated.formattedShort()
     }
 
     //MARK: - Private methods
@@ -123,10 +122,4 @@ final class TaskCell: UITableViewCell {
         ])
     }
 
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
-    }
 }

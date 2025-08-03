@@ -13,7 +13,7 @@ final class TasksFooterView: UIView {
     private let countLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 16)
-        label.textColor = .secondaryLabel
+        label.textColor = .white
         label.text = "0 Задач"
         return label
     }()

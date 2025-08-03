@@ -29,6 +29,14 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
 
     private func setupUI() {
         title = "Задачи"
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationItem.largeTitleDisplayMode = .inline
+        
+        navigationController?.navigationBar.largeTitleTextAttributes = [
+            .foregroundColor: UIColor.white,
+            .font: UIFont.boldSystemFont(ofSize: 34)
+        ]
+        
         view.backgroundColor = .blackTD
 
         tableView.dataSource = self
@@ -38,6 +46,9 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
         tableView.separatorStyle = .none
         tableView.showsVerticalScrollIndicator = false
         tableView.translatesAutoresizingMaskIntoConstraints = false
+        
+        navigationItem.backButtonTitle = "Назад"
+        navigationController?.navigationBar.tintColor = .systemYellow
         
         view.addSubview(tableView)
         view.addSubview(footerView)
@@ -72,9 +83,7 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
         navigationItem.searchController = searchController
         searchController.searchResultsUpdater = self
     }
-
-
-
+    
     @objc private func addTapped() {
         print("addTapped")
         presenter.didTapAddTask()
