@@ -38,7 +38,7 @@ final class TasksFooterView: UIView {
 
     // MARK: - Setup
     private func setupView() {
-        backgroundColor = .gray
+        backgroundColor = .grayTD
         translatesAutoresizingMaskIntoConstraints = false
 
         addSubview(countLabel)

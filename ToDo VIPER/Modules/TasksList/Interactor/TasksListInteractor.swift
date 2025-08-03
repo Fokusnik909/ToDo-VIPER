@@ -62,6 +62,7 @@ final class TasksListInteractor: TasksListInteractorProtocol {
     func toggleTaskCompletion(task: TaskModel) {
         var updated = task
         updated.isCompleted.toggle()
+        presenter?.updateTaskInView(updated)
         self.coreDataManager.addTask(from: updated)
         self.fetchTasks()
     }

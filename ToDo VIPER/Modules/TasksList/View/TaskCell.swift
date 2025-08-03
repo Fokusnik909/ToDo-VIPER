@@ -10,83 +10,123 @@ import UIKit
 final class TaskCell: UITableViewCell {
     static let reuseId = "TaskCell"
 
-    private let titleLabel = UILabel()
-    private let descriptionLabel = UILabel()
-    private let dateLabel = UILabel()
+    private var currentTask: TaskModel?
+    var onToggleCompletion: ((TaskModel) -> Void)?
 
-    private let container = UIView()
+    private let checkboxButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.tintColor = .systemBlue
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
 
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.font = .boldSystemFont(ofSize: 16)
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    private let descriptionLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 12)
+        label.textColor = .white
+        label.numberOfLines = 2
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    private let dateLabel: UILabel = {
+        let label = UILabel()
+        label.font = .italicSystemFont(ofSize: 12)
+        label.textColor = .grayTextTD
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    //MARK: - Init
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setup()
+        setupLayout()
+        checkboxButton.addTarget(self, action: #selector(checkboxTapped), for: .touchUpInside)
+        backgroundColor = .clear
+        selectionStyle = .none
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
+    // MARK: - Configuration
+
     func configure(with task: TaskModel) {
-        descriptionLabel.text = task.description
-        dateLabel.text = formatDate(task.dateCreated)
+        currentTask = task
 
-        let titleText = task.title
+        let image = task.isCompleted ? UIImage(systemName: "checkmark.circle.fill") : UIImage(systemName: "circle")
+        checkboxButton.setImage(image, for: .normal)
+        checkboxButton.tintColor = task.isCompleted ? .yellow : .grayTextTD
 
+        
         if task.isCompleted {
-            titleLabel.attributedText = NSAttributedString(
-                string: titleText,
+            let attributed = NSAttributedString(
+                string: task.title,
                 attributes: [
                     .strikethroughStyle: NSUnderlineStyle.single.rawValue,
-                    .foregroundColor: UIColor.secondaryLabel
+                    .foregroundColor: UIColor.grayTextTD
                 ]
             )
+            titleLabel.attributedText = attributed
+            descriptionLabel.textColor = .grayTextTD
         } else {
             titleLabel.attributedText = nil
-            titleLabel.text = titleText
-            titleLabel.textColor = .label
+            titleLabel.text = task.title
+            titleLabel.textColor = .white
+            descriptionLabel.textColor = .white
         }
+
+        descriptionLabel.text = task.description
+        dateLabel.text = formatDate(task.dateCreated)
     }
 
-
-    private func setup() {
-        backgroundColor = .clear
-        selectionStyle = .none
-
-        container.backgroundColor = .secondarySystemBackground
-        container.layer.cornerRadius = 12
-        container.translatesAutoresizingMaskIntoConstraints = false
-
-        titleLabel.font = .preferredFont(forTextStyle: .headline)
-        descriptionLabel.font = .preferredFont(forTextStyle: .subheadline)
-        descriptionLabel.textColor = .secondaryLabel
-        descriptionLabel.numberOfLines = 2
-
-        dateLabel.font = .systemFont(ofSize: 16)
-        dateLabel.textColor = .tertiaryLabel
-
-        let vStack = UIStackView(arrangedSubviews: [titleLabel, descriptionLabel, dateLabel])
-        vStack.axis = .vertical
-        vStack.spacing = 4
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-
-        container.addSubview(vStack)
-        contentView.addSubview(container)
+    //MARK: - Private methods
+    @objc private func checkboxTapped() {
+        guard let task = currentTask else { return }
+        onToggleCompletion?(task)
+    }
+    
+    //MARK: - Layout
+    private func setupLayout() {
+        contentView.addSubview(checkboxButton)
+        contentView.addSubview(titleLabel)
+        contentView.addSubview(descriptionLabel)
+        contentView.addSubview(dateLabel)
 
         NSLayoutConstraint.activate([
-            container.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            container.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
-            container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            checkboxButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            checkboxButton.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
+            checkboxButton.widthAnchor.constraint(equalToConstant: 24),
+            checkboxButton.heightAnchor.constraint(equalToConstant: 24),
 
-            vStack.topAnchor.constraint(equalTo: container.topAnchor, constant: 12),
-            vStack.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -12),
-            vStack.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
-            vStack.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -12),
+            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
+            titleLabel.leadingAnchor.constraint(equalTo: checkboxButton.trailingAnchor, constant: 12),
+            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+
+            descriptionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
+            descriptionLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            descriptionLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
+
+            dateLabel.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 4),
+            dateLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            dateLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
+            dateLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
         ])
     }
 
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "dd/MM/yy"
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
         return formatter.string(from: date)
     }
 }

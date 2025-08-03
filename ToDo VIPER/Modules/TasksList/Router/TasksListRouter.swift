@@ -8,21 +8,16 @@
 import UIKit
 
 protocol TasksListRouterProtocol: AnyObject {
-    func navigateToAddTask()
-    func navigateToTaskDetails(_ task: TaskModel)
+    func openEditor(viewController: UIViewController)
 }
 
 import UIKit
 
 final class TasksListRouter: TasksListRouterProtocol {
     weak var viewController: UIViewController?
-
-    func navigateToAddTask() {
-
-    }
-
-    func navigateToTaskDetails(_ task: TaskModel) {
-
+    
+    func openEditor(viewController: UIViewController) {
+        self.viewController?.navigationController?.pushViewController(viewController, animated: true)
     }
 }
 

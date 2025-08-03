@@ -13,18 +13,20 @@ protocol TasksListPresenterProtocol: AnyObject {
     func didToggleTaskCompletion(_ task: TaskModel)
     func didTapAddTask()
     func didSearch(query: String)
-    func presentTasks(_ tasks: [TaskModel])
+    
     func didLoadTasks(_ tasks: [TaskModel])
     func didFailLoadingTasks(with message: String)
+    func updateTaskInView(_ task: TaskModel)
 }
 
 final class TasksListPresenter: TasksListPresenterProtocol {
+    
     weak var view: TasksListViewProtocol?
-    var interactor: TasksListInteractorProtocol
-    var router: TasksListRouterProtocol
-
+    private let interactor: TasksListInteractorProtocol
+    private let router: TasksListRouterProtocol
+    
     private var tasks: [TaskModel] = []
-
+    
     init(view: TasksListViewProtocol,
          interactor: TasksListInteractorProtocol,
          router: TasksListRouterProtocol) {
@@ -32,38 +34,49 @@ final class TasksListPresenter: TasksListPresenterProtocol {
         self.interactor = interactor
         self.router = router
     }
-
+    
+    //MARK: - View Lifecycle
     func viewDidLoad() {
         interactor.fetchTasks()
-//        CoreDataManager.shared.deleteAllTasks()
     }
-
+    
+    //MARK: - Navigation
+    func didTapAddTask() {
+        let editorVC = TaskEditorBuilder.build(with: .add) { [weak self] in
+            self?.viewDidLoad()
+        }
+        router.openEditor(viewController: editorVC)
+    }
+    
     func didSelectTask(_ task: TaskModel) {
-        router.navigateToTaskDetails(task)
+        let editorVC = TaskEditorBuilder.build(with: .edit(task)) { [weak self] in
+            self?.viewDidLoad()
+        }
+        router.openEditor(viewController: editorVC)
     }
-
+    
+    //MARK: - Task Interactions
     func didToggleTaskCompletion(_ task: TaskModel) {
         interactor.toggleTaskCompletion(task: task)
     }
-
-    func didTapAddTask() {
-        router.navigateToAddTask()
-    }
-
+    
     func didSearch(query: String) {
         interactor.searchTasks(query: query)
     }
     
-    func presentTasks(_ tasks: [TaskModel]) {
+    //MARK: - Data Presentation
+    func didLoadTasks(_ tasks: [TaskModel]) {
         self.tasks = tasks
         view?.showTasks(tasks)
     }
     
-    func didLoadTasks(_ tasks: [TaskModel]) {
-        presentTasks(tasks)
-    }
-
     func didFailLoadingTasks(with message: String) {
         view?.showError(message)
+    }
+    
+    func updateTaskInView(_ task: TaskModel) {
+        guard let index = tasks.firstIndex(where: { $0.id == task.id }) else { return }
+        tasks[index] = task
+        view?.showTasks(tasks)
     }
 }

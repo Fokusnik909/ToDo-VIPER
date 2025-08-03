@@ -29,12 +29,12 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
 
     private func setupUI() {
         title = "Задачи"
-        view.backgroundColor = .black
+        view.backgroundColor = .blackTD
 
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(TaskCell.self, forCellReuseIdentifier: TaskCell.reuseId)
-        tableView.backgroundColor = .black
+        tableView.backgroundColor = .blackTD
         tableView.separatorStyle = .none
         tableView.showsVerticalScrollIndicator = false
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -43,7 +43,7 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
         view.addSubview(footerView)
         view.addSubview(footerInsetView)
 
-        footerInsetView.backgroundColor = .gray
+        footerInsetView.backgroundColor = .grayTD
         footerInsetView.translatesAutoresizingMaskIntoConstraints = false
         footerView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -104,7 +104,12 @@ extension TasksListView: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let task = tasks[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: TaskCell.reuseId, for: indexPath) as! TaskCell
+        
         cell.configure(with: task)
+        cell.onToggleCompletion = { [weak self] updatedTask in
+            self?.presenter.didToggleTaskCompletion(updatedTask)
+        }
+
         return cell
     }
 
