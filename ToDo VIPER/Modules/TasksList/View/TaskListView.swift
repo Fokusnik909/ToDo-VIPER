@@ -58,6 +58,7 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
         footerInsetView.translatesAutoresizingMaskIntoConstraints = false
         footerView.translatesAutoresizingMaskIntoConstraints = false
         
+        footerView.updateCount(tasks.count)
         footerView.addButton.addTarget(self, action: #selector(addTapped), for: .touchUpInside)
 
 
@@ -90,10 +91,13 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
     }
     
     func showTasks(_ tasks: [TaskModel]) {
+        let oldCount = self.tasks.count
         self.tasks = tasks
         tableView.reloadData()
-        
-        footerView.updateCount(tasks.count)
+
+        if oldCount != tasks.count {
+            footerView.updateCount(tasks.count)
+        }
     }
 
     func showError(_ message: String) {

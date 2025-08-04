@@ -25,7 +25,7 @@ final class TaskEditorView: UIViewController, TaskEditorViewProtocol {
     
     private let dateLabel: UILabel = {
         let lbl = UILabel()
-        lbl.font = .systemFont(ofSize: 12)
+        lbl.font = .systemFont(ofSize: 12, weight: .regular)
         lbl.textColor = .grayTextTD
         lbl.translatesAutoresizingMaskIntoConstraints = false
         return lbl
@@ -33,7 +33,7 @@ final class TaskEditorView: UIViewController, TaskEditorViewProtocol {
     
     private let descriptionView: UITextView = {
         let des = UITextView()
-        des.font = .systemFont(ofSize: 16)
+        des.font = .systemFont(ofSize: 16, weight: .regular)
         des.textColor = .white
         des.backgroundColor = .blackTD
         des.translatesAutoresizingMaskIntoConstraints = false

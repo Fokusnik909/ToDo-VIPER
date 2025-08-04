@@ -38,6 +38,7 @@ final class TasksListPresenter: TasksListPresenterProtocol {
     //MARK: - View Lifecycle
     func viewDidLoad() {
         interactor.fetchTasks()
+//        CoreDataManager.shared.deleteAllTasks()
     }
     
     //MARK: - Navigation

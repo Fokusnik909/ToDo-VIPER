@@ -14,7 +14,6 @@ final class TasksFooterView: UIView {
         let label = UILabel()
         label.font = .systemFont(ofSize: 16)
         label.textColor = .white
-        label.text = "0 Задач"
         return label
     }()
 
@@ -62,7 +61,12 @@ final class TasksFooterView: UIView {
 
     // MARK: - Public
     func updateCount(_ count: Int) {
-        countLabel.text = count == 0 ? "Нет задач" : "\(count) Задач"
+        let tasksString = String.localizedStringWithFormat(
+            NSLocalizedString("numberOfTasks", comment: "Number of remaining tasks"),
+            count
+        )
+        print(count)
+        countLabel.text = tasksString
     }
 }
 
