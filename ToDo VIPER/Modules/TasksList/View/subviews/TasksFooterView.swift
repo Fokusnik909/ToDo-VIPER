@@ -13,14 +13,14 @@ final class TasksFooterView: UIView {
     private let countLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 16)
-        label.textColor = .white
+        label.textColor = .whiteTD
         return label
     }()
 
     let addButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(UIImage(systemName: "square.and.pencil"), for: .normal)
-        button.tintColor = .systemYellow
+        button.tintColor = .yellowTD
         return button
     }()
 

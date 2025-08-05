@@ -13,7 +13,7 @@ protocol NetworkServiceProtocol {
 
 final class NetworkService: NetworkServiceProtocol {
     func fetchTasks(completion: @escaping (Result<[NetworkTaskDTO], Error>) -> Void) {
-        guard let url = URL(string: "https://dummyjson.com/todos222") else {
+        guard let url = URL(string: "https://dummyjson.com/todos") else {
             DispatchQueue.main.async {
                 completion(.failure(NSError(domain: "Invalid URL", code: 0)))
             }

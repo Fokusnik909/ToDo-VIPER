@@ -27,29 +27,35 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
         presenter.viewDidLoad()
     }
 
-    private func setupUI() {
-        title = "Задачи"
-        navigationController?.navigationBar.prefersLargeTitles = true
-        navigationItem.largeTitleDisplayMode = .inline
-        
-        navigationController?.navigationBar.largeTitleTextAttributes = [
-            .foregroundColor: UIColor.white,
-            .font: UIFont.boldSystemFont(ofSize: 34)
-        ]
-        
-        view.backgroundColor = .blackTD
+    func showTasks(_ tasks: [TaskModel]) {
+        let oldCount = self.tasks.count
+        self.tasks = tasks
+        tableView.reloadData()
 
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.register(TaskCell.self, forCellReuseIdentifier: TaskCell.reuseId)
-        tableView.backgroundColor = .blackTD
-        tableView.separatorStyle = .none
-        tableView.showsVerticalScrollIndicator = false
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        
-        navigationItem.backButtonTitle = "Назад"
-        navigationController?.navigationBar.tintColor = .systemYellow
-        
+        if oldCount != tasks.count {
+            footerView.updateCount(tasks.count)
+        }
+    }
+
+    func showError(_ message: String) {
+        let alert = UIAlertController(title: "Ошибка", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "ОК", style: .default))
+        present(alert, animated: true)
+    }
+
+    
+    //MARK: - Private Methods
+    
+    @objc private func addTapped() {
+        print("addTapped")
+        presenter.didTapAddTask()
+    }
+    
+    private func setupUI() {
+        view.backgroundColor = .blackTD
+        setupNavigationController()
+        setupTableView()
+ 
         view.addSubview(tableView)
         view.addSubview(footerView)
         view.addSubview(footerInsetView)
@@ -60,7 +66,6 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
         
         footerView.updateCount(tasks.count)
         footerView.addButton.addTarget(self, action: #selector(addTapped), for: .touchUpInside)
-
 
         // Layout
         NSLayoutConstraint.activate([
@@ -81,33 +86,38 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
         ])
 
 
+        
+    }
+
+    private func setupNavigationController() {
+        title = "Задачи"
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationItem.largeTitleDisplayMode = .inline
+        
+        navigationController?.navigationBar.largeTitleTextAttributes = [
+            .foregroundColor: UIColor.whiteTD,
+            .font: UIFont.boldSystemFont(ofSize: 34)
+        ]
+        
+        navigationItem.backButtonTitle = "Назад"
+        navigationController?.navigationBar.tintColor = .yellowTD
+        
         navigationItem.searchController = searchController
         searchController.searchResultsUpdater = self
     }
     
-    @objc private func addTapped() {
-        print("addTapped")
-        presenter.didTapAddTask()
+    private func setupTableView() {
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(TaskCell.self, forCellReuseIdentifier: TaskCell.reuseId)
+        tableView.backgroundColor = .blackTD
+        tableView.separatorStyle = .none
+        tableView.showsVerticalScrollIndicator = false
+        tableView.translatesAutoresizingMaskIntoConstraints = false
     }
     
-    func showTasks(_ tasks: [TaskModel]) {
-        let oldCount = self.tasks.count
-        self.tasks = tasks
-        tableView.reloadData()
-
-        if oldCount != tasks.count {
-            footerView.updateCount(tasks.count)
-        }
-    }
-
-    func showError(_ message: String) {
-        let alert = UIAlertController(title: "Ошибка", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "ОК", style: .default))
-        present(alert, animated: true)
-    }
-
-
 }
+
 
 extension TasksListView: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {

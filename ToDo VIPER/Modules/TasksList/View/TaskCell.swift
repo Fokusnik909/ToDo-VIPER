@@ -15,7 +15,6 @@ final class TaskCell: UITableViewCell {
 
     private let checkboxButton: UIButton = {
         let button = UIButton(type: .system)
-        button.tintColor = .systemBlue
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -31,7 +30,7 @@ final class TaskCell: UITableViewCell {
     private let descriptionLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 12, weight: .regular)
-        label.textColor = .white
+        label.textColor = .whiteTD
         label.numberOfLines = 2
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -40,7 +39,7 @@ final class TaskCell: UITableViewCell {
     private let dateLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 12, weight: .regular)
-        label.textColor = .grayTextTD
+        label.textColor = .opacityWhiteTD
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -62,9 +61,9 @@ final class TaskCell: UITableViewCell {
     func configure(with task: TaskModel) {
         currentTask = task
 
-        let image = task.isCompleted ? UIImage(systemName: "checkmark.circle.fill") : UIImage(systemName: "circle")
+        let image = task.isCompleted ? UIImage(named: "check") : UIImage(named: "circle")
         checkboxButton.setImage(image, for: .normal)
-        checkboxButton.tintColor = task.isCompleted ? .yellow : .grayTextTD
+        checkboxButton.tintColor = task.isCompleted ? UIColor.yellowTD : .grayCircle
 
         
         if task.isCompleted {
@@ -72,16 +71,16 @@ final class TaskCell: UITableViewCell {
                 string: task.title,
                 attributes: [
                     .strikethroughStyle: NSUnderlineStyle.single.rawValue,
-                    .foregroundColor: UIColor.grayTextTD
+                    .foregroundColor: UIColor.opacityWhiteTD
                 ]
             )
             titleLabel.attributedText = attributed
-            descriptionLabel.textColor = .grayTextTD
+            descriptionLabel.textColor = .opacityWhiteTD
         } else {
             titleLabel.attributedText = nil
             titleLabel.text = task.title
-            titleLabel.textColor = .white
-            descriptionLabel.textColor = .white
+            titleLabel.textColor = .whiteTD
+            descriptionLabel.textColor = .whiteTD
         }
 
         descriptionLabel.text = task.description

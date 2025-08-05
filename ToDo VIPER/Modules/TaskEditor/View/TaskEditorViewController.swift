@@ -17,7 +17,7 @@ final class TaskEditorView: UIViewController, TaskEditorViewProtocol {
         let tf = UITextField()
         tf.placeholder = "Введите заголовок"
         tf.font = .systemFont(ofSize: 34, weight: .bold)
-        tf.textColor = .white
+        tf.textColor = .whiteTD
         tf.translatesAutoresizingMaskIntoConstraints = false
         tf.backgroundColor = .blackTD
         return tf
@@ -26,7 +26,7 @@ final class TaskEditorView: UIViewController, TaskEditorViewProtocol {
     private let dateLabel: UILabel = {
         let lbl = UILabel()
         lbl.font = .systemFont(ofSize: 12, weight: .regular)
-        lbl.textColor = .grayTextTD
+        lbl.textColor = .opacityWhiteTD
         lbl.translatesAutoresizingMaskIntoConstraints = false
         return lbl
     }()
@@ -34,7 +34,7 @@ final class TaskEditorView: UIViewController, TaskEditorViewProtocol {
     private let descriptionView: UITextView = {
         let des = UITextView()
         des.font = .systemFont(ofSize: 16, weight: .regular)
-        des.textColor = .white
+        des.textColor = .whiteTD
         des.backgroundColor = .blackTD
         des.translatesAutoresizingMaskIntoConstraints = false
         return des
@@ -42,7 +42,6 @@ final class TaskEditorView: UIViewController, TaskEditorViewProtocol {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .black
         navigationItem.largeTitleDisplayMode = .never
         setupUI()
         presenter.viewDidLoad()
