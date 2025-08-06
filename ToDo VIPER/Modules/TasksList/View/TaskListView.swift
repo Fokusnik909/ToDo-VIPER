@@ -53,6 +53,7 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
     
     private func setupUI() {
         view.backgroundColor = .blackTD
+        customizeSearchBar()
         setupNavigationController()
         setupTableView()
  
@@ -84,9 +85,6 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
             footerInsetView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             footerInsetView.heightAnchor.constraint(equalToConstant: view.safeAreaInsets.bottom > 0 ? view.safeAreaInsets.bottom : 34)
         ])
-
-
-        
     }
 
     private func setupNavigationController() {
@@ -101,9 +99,6 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
         
         navigationItem.backButtonTitle = "Назад"
         navigationController?.navigationBar.tintColor = .yellowTD
-        
-        navigationItem.searchController = searchController
-        searchController.searchResultsUpdater = self
     }
     
     private func setupTableView() {
@@ -116,10 +111,30 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
         tableView.translatesAutoresizingMaskIntoConstraints = false
     }
     
+    private func customizeSearchBar() {
+        navigationItem.searchController = searchController
+        searchController.searchResultsUpdater = self
+        
+        let searchField = searchController.searchBar.searchTextField
+        searchField.backgroundColor = .grayTD
+        searchField.textColor = .whiteTD
+        searchField.tintColor = .yellowTD
+        searchField.leftView?.tintColor = .opacityWhiteTD
+        
+        searchController.searchResultsUpdater = self
+        searchController.searchBar.showsBookmarkButton = true
+        searchController.searchBar.setImage(UIImage(systemName: "mic.fill"), for: .bookmark, state: .normal)
+        
+        searchField.attributedPlaceholder = NSAttributedString(
+            string: "Search",
+            attributes: [.foregroundColor: UIColor.opacityWhiteTD]
+        )
+    }
+    
 }
 
 
-extension TasksListView: UITableViewDataSource, UITableViewDelegate {
+extension TasksListView: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         tasks.count
     }
@@ -135,12 +150,70 @@ extension TasksListView: UITableViewDataSource, UITableViewDelegate {
 
         return cell
     }
+    
+}
 
+extension TasksListView: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         presenter.didSelectTask(tasks[indexPath.row])
         tableView.deselectRow(at: indexPath, animated: true)
     }
+        
+    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        let task = tasks[indexPath.row]
 
+        return UIContextMenuConfiguration(identifier: indexPath as NSIndexPath, previewProvider: nil, actionProvider: { _ in
+            return self.makeContextMenu(for: task)
+        })
+    }
+    
+    func tableView(_ tableView: UITableView, previewForHighlightingContextMenuWithConfiguration configuration: UIContextMenuConfiguration) -> UITargetedPreview? {
+        guard let indexPath = configuration.identifier as? IndexPath,
+              let cell = tableView.cellForRow(at: indexPath) as? TaskCell else {
+            return nil
+        }
+        
+        let task = tasks[indexPath.row]
+        cell.configure(with: task, forPreview: true)
+
+        let param = UIPreviewParameters()
+        param.visiblePath = UIBezierPath(roundedRect: cell.getContainerViewBounds(), cornerRadius: 16)
+
+        return UITargetedPreview(view: cell, parameters: param)
+    }
+    
+    func tableView(_ tableView: UITableView, previewForDismissingContextMenuWithConfiguration configuration: UIContextMenuConfiguration) -> UITargetedPreview? {
+        guard let indexPath = configuration.identifier as? IndexPath,
+              let cell = tableView.cellForRow(at: indexPath) as? TaskCell else {
+            return nil
+        }
+        
+        let task = tasks[indexPath.row]
+        cell.configure(with: task, forPreview: false)
+        
+
+        return UITargetedPreview(view: cell)
+    }
+    
+    private func makeContextMenu(for task: TaskModel) -> UIMenu {
+        let edit = UIAction(title: "Редактировать", image: UIImage(systemName: "square.and.pencil")) { _ in
+            self.presenter.didSelectTask(task)
+        }
+        
+        let share = UIAction(title: "Поделиться", image: UIImage(systemName: "square.and.arrow.up")) { [weak self] _ in
+            let vc = UIActivityViewController(
+                activityItems: [task.title,
+                                task.description ?? "" ], applicationActivities: nil)
+            self?.present(vc, animated: true)
+        }
+        
+        let delete = UIAction(title: "Удалить", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
+            self?.presenter.didRequestDelete(task)
+        }
+        
+        return UIMenu(title: "", children: [edit, share, delete])
+    }
+    
 }
 
 extension TasksListView: UISearchResultsUpdating {

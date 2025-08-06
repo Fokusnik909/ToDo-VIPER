@@ -13,6 +13,7 @@ protocol TasksListPresenterProtocol: AnyObject {
     func didToggleTaskCompletion(_ task: TaskModel)
     func didTapAddTask()
     func didSearch(query: String)
+    func didRequestDelete(_ task: TaskModel)
     
     func didLoadTasks(_ tasks: [TaskModel])
     func didFailLoadingTasks(with message: String)
@@ -63,6 +64,10 @@ final class TasksListPresenter: TasksListPresenterProtocol {
     
     func didSearch(query: String) {
         interactor.searchTasks(query: query)
+    }
+    
+    func didRequestDelete(_ task: TaskModel) {
+        interactor.deleteTask(task)
     }
     
     //MARK: - Data Presentation

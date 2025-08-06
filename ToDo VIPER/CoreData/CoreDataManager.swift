@@ -103,10 +103,16 @@ final class CoreDataManager {
         }
     }
 
-    func deleteTask(_ task: ToDoCoreData) {
-        viewContext.perform {
-            self.viewContext.delete(task)
-            self.save(self.viewContext)
+    func deleteTask(with id: Int64) {
+        fetchTasks { tasks in
+            guard let taskToDelete = tasks.first(where: { $0.id == id }) else {
+                print("Task not found for id: \(id)")
+                return
+            }
+            
+            self.viewContext.delete(taskToDelete)
+            self.saveContext()
+            print("Task deleted with id: \(id)")
         }
     }
 
