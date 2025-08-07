@@ -99,8 +99,6 @@ final class CoreDataManager {
     }
     
     func addTasks(_ models: [TaskModel]) {
-        print("Добавляем \(models.count) задач в Core Data")
-//        let context = newBackgroundContext()
         let context = viewContext
         context.perform {
             models.forEach { self._addOrUpdate($0, in: context) }

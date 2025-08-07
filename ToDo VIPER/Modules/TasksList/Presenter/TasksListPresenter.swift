@@ -8,16 +8,14 @@ import Foundation
 
 protocol TasksListPresenterProtocol: AnyObject {
     func viewDidLoad()
+    
     func didSelectTask(_ task: TaskModel)
     func didToggleTaskCompletion(_ task: TaskModel)
     func didTapAddTask()
     func didSearch(query: String)
     func didRequestDelete(_ task: TaskModel)
     
-//    func didLoadTasks(_ tasks: [TaskModel])
     func didFailLoadingTasks(with message: String)
-//    func updateTaskInView(_ task: TaskModel)
-    
     func didUpdateTable(update: TaskStoreUpdate, count: Int)
     
     var numberOfTasks: Int { get }
@@ -26,22 +24,21 @@ protocol TasksListPresenterProtocol: AnyObject {
 
 final class TasksListPresenter: TasksListPresenterProtocol {
     weak var view: TasksListViewProtocol?
-    private var interactor: TasksListInteractorProtocol?
+    private var interactor: TasksListInteractorProtocol
     private let router: TasksListRouterProtocol
     
-//    private var tasks: [TaskModel] = []
-    private let taskStore: TaskManagerProtocol
 
     init(view: TasksListViewProtocol,
-         router: TasksListRouterProtocol, taskStore: TaskManagerProtocol) {
+         router: TasksListRouterProtocol,
+         interactor: TasksListInteractorProtocol) {
         self.view = view
         self.router = router
-        self.taskStore = taskStore
+        self.interactor = interactor
     }
 
     // MARK: - View Lifecycle
     func viewDidLoad() {
-        interactor?.fetchTasks()
+        interactor.fetchTasks()
 //        CoreDataManager.shared.deleteAllTasks()
     }
 
@@ -62,28 +59,24 @@ final class TasksListPresenter: TasksListPresenterProtocol {
     
 
     func didToggleTaskCompletion(_ task: TaskModel) {
-        interactor?.toggleTaskCompletion(task: task)
+        interactor.toggleTaskCompletion(task: task)
     }
 
     func didSearch(query: String) {
-        interactor?.searchTasks(query: query)
+        interactor.searchTasks(query: query)
     }
 
     func didRequestDelete(_ task: TaskModel) {
-        interactor?.deleteTask(task)
-    }
-    
-    func setInteractor(_ interactor: TasksListInteractorProtocol) {
-        self.interactor = interactor
+        interactor.deleteTask(task)
     }
 
     // MARK: - Data Presentation
     var numberOfTasks: Int {
-        taskStore.numberOfTasks
+        interactor.numberOfTasks
     }
     
     func task(at indexPath: IndexPath) -> TaskModel {
-        taskStore.task(at: indexPath)
+        interactor.task(at: indexPath)
     }
     
     func didFailLoadingTasks(with message: String) {

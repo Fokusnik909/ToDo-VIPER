@@ -10,7 +10,6 @@ protocol TasksListViewProtocol: AnyObject {
     func showTasks(_ tasks: [TaskModel])
     func showError(_ message: String)
     func updateTable(with update: TaskStoreUpdate, totalCount: Int)
-//    func removeTask(at indexPath: IndexPath)
 }
 
 final class TasksListView: UIViewController {
@@ -29,7 +28,6 @@ final class TasksListView: UIViewController {
 
     //MARK: - Private Methods
     @objc private func addTapped() {
-        print("addTapped")
         presenter.didTapAddTask()
     }
     
@@ -47,7 +45,7 @@ final class TasksListView: UIViewController {
         footerInsetView.translatesAutoresizingMaskIntoConstraints = false
         footerView.translatesAutoresizingMaskIntoConstraints = false
         
-//        footerView.updateCount(taskStore.numberOfTasks)
+        footerView.updateCount(presenter.numberOfTasks)
         footerView.addButton.addTarget(self, action: #selector(addTapped), for: .touchUpInside)
 
         // Layout
@@ -112,7 +110,6 @@ final class TasksListView: UIViewController {
 //MARK: - UITableViewDataSource
 extension TasksListView: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        print(presenter.numberOfTasks)
         return  presenter.numberOfTasks
     }
 
@@ -136,7 +133,6 @@ extension TasksListView: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-//            taskStore.deleteTask(at: indexPath)
             let task = presenter.task(at: indexPath)
             presenter.didRequestDelete(task)
         }
@@ -148,7 +144,6 @@ extension TasksListView: UITableViewDataSource {
 //MARK: - UITableViewDelegate
 extension TasksListView: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//        let task = taskStore.task(at: indexPath)
         let task = presenter.task(at: indexPath)
         presenter.didSelectTask(task)
         tableView.deselectRow(at: indexPath, animated: true)
@@ -156,7 +151,6 @@ extension TasksListView: UITableViewDelegate {
     }
         
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
-//        let task = taskStore.task(at: indexPath)
         let task = presenter.task(at: indexPath)
 
         return UIContextMenuConfiguration(identifier: indexPath as NSIndexPath, previewProvider: nil, actionProvider: { _ in
@@ -185,7 +179,6 @@ extension TasksListView: UITableViewDelegate {
             return nil
         }
         
-//        let task = taskStore.task(at: indexPath)
         let task = presenter.task(at: indexPath)
         cell.configure(with: task, forPreview: false)
         
@@ -207,7 +200,6 @@ extension TasksListView: UITableViewDelegate {
         
         let delete = UIAction(title: "Удалить", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
             guard let self = self else { return }
-//            taskStore.deleteTask(at: indexPath)
             presenter.didRequestDelete(task)
         }
         
@@ -218,7 +210,6 @@ extension TasksListView: UITableViewDelegate {
 
 extension TasksListView: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
-//        taskStore.searchTasks(with: searchController.searchBar.text ?? "")
         presenter.didSearch(query: searchController.searchBar.text ?? "")
     }
 }
@@ -252,23 +243,4 @@ extension TasksListView: TasksListViewProtocol {
         
         footerView.updateCount(totalCount)
     }
-//    func didUpdate(_ update: TaskStoreUpdate) {
-//        let section = 0
-//        
-//        if update.insertedIndexes.isEmpty &&
-//            update.updatedIndexes.isEmpty &&
-//            update.deletedIndexes.isEmpty {
-//            tableView.reloadData()
-//        } else {
-//            let safeUpdatedIndexes = update.updatedIndexes.subtracting(update.deletedIndexes)
-//            
-//            tableView.performBatchUpdates {
-//                tableView.deleteRows(at: update.deletedIndexes.map { IndexPath(row: $0, section: section) }, with: .fade)
-//                tableView.insertRows(at: update.insertedIndexes.map { IndexPath(row: $0, section: section) }, with: .fade)
-//                tableView.reloadRows(at: safeUpdatedIndexes.map { IndexPath(row: $0, section: section) }, with: .fade)
-//            }
-//        }
-//        footerView.updateCount(taskStore.numberOfTasks)
-//    }
-    
 }

@@ -44,7 +44,6 @@ final class DataProvider: NSObject {
                                                                   cacheName: nil)
         
         fetchedResultsController.delegate = self
-//        try? fetchedResultsController.performFetch()
         
         do {
             try fetchedResultsController.performFetch()
@@ -56,12 +55,6 @@ final class DataProvider: NSObject {
         
         return fetchedResultsController
     }()
-    
-//    init(dataStore: CoreDataManager = .shared, delegate: DataProviderDelegate) {
-//        self.context = dataStore.viewContext
-//        self.dataStore = dataStore
-//        self.delegate = delegate
-//    }
     
     init(context: NSManagedObjectContext, delegate: DataProviderDelegate? = nil) {
         self.context = context

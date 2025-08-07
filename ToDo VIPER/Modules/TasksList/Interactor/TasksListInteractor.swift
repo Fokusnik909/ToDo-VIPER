@@ -8,26 +8,28 @@
 import Foundation
 
 protocol TasksListInteractorProtocol: AnyObject {
+    var numberOfTasks: Int { get }
+    func task(at indexPath: IndexPath) -> TaskModel
     func fetchTasks()
     func searchTasks(query: String)
     func toggleTaskCompletion(task: TaskModel)
     func deleteTask(_ task: TaskModel)
 }
 
-final class TasksListInteractor: NSObject, TasksListInteractorProtocol {
+final class TasksListInteractor: TasksListInteractorProtocol {
     weak var presenter: TasksListPresenterProtocol?
     
     private let networkService: NetworkServiceProtocol
     private let taskStore: TaskManagerProtocol
-    
-//    init(networkService: NetworkServiceProtocol) {
-//        self.networkService = networkService
-//    }
+
     
     init(networkService: NetworkServiceProtocol, taskStore: TaskManagerProtocol) {
         self.networkService = networkService
         self.taskStore = taskStore
-        super.init()
+    }
+    
+    var numberOfTasks: Int {
+        taskStore.numberOfTasks
     }
     
     func fetchTasks() {
@@ -39,7 +41,6 @@ final class TasksListInteractor: NSObject, TasksListInteractorProtocol {
                     switch result {
                     case .success(let dtos):
                         let models = dtos.map { TaskModel(from: $0) }
-//                        self.coreDataManager.addTasks(models)
                         CoreDataManager.shared.addTasks(models)
                         
                         
@@ -63,26 +64,20 @@ final class TasksListInteractor: NSObject, TasksListInteractorProtocol {
     }
     
     func searchTasks(query: String) {
-        //        coreDataManager.searchTasks(query: query) { [weak self] results in
-        //            let models = results.map { TaskModel(from: $0) }
-        //            self?.presenter?.didLoadTasks(models)
         taskStore.searchTasks(with: query)
     }
     
     
     func deleteTask(_ task: TaskModel) {
-        //        CoreDataManager.shared.deleteTask(with: task.id)
-        //        fetchTasks()
         guard let indexPath = findIndexPath(for: task) else { return }
         taskStore.deleteTask(at: indexPath)
     }
     
+    func task(at indexPath: IndexPath) -> TaskModel {
+        taskStore.task(at: indexPath)
+    }
+    
     func toggleTaskCompletion(task: TaskModel) {
-//        var updated = task
-//        updated.isCompleted.toggle()
-//        presenter?.updateTaskInView(updated)
-        //        self.coreDataManager.addTask(from: updated)
-        //        self.fetchTasks()
         var updated = task
         updated.isCompleted.toggle()
         CoreDataManager.shared.addTask(from: updated)

@@ -35,7 +35,6 @@ final class TaskEditorPresenter: TaskEditorPresenterProtocol {
         case .add:
             view?.editsFields(title: "", date: Date(), description: "")
         case .edit(let task):
-            print(task.title)
             view?.editsFields(title: task.title, date: task.dateCreated, description: task.description ?? "")
         }
     }

@@ -13,22 +13,18 @@ enum TasksListModuleBuilder {
         let router = TasksListRouter()
         let networkService = NetworkService()
         
-        let taskStore = DataProvider(
-            context: CoreDataManager.shared.viewContext,
-            delegate: nil
-        )
+        let taskStore = DataProvider(context: CoreDataManager.shared.viewContext)
         
         let interactor = TasksListInteractor(
             networkService: networkService,
             taskStore: taskStore  
         )
         
-        let presenter = TasksListPresenter(view: view, router: router, taskStore: taskStore)
-        taskStore.delegate = interactor
+        let presenter = TasksListPresenter(view: view, router: router, interactor: interactor)
         
+        taskStore.delegate = interactor
         view.presenter = presenter
         interactor.presenter = presenter
-        presenter.setInteractor(interactor)
         router.viewController = view
         
         return view

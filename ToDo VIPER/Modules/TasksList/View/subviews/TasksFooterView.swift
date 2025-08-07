@@ -65,7 +65,6 @@ final class TasksFooterView: UIView {
             NSLocalizedString("numberOfTasks", comment: "Number of remaining tasks"),
             count
         )
-        print(count)
         countLabel.text = tasksString
     }
 }
