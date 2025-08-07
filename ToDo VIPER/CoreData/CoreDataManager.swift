@@ -7,6 +7,7 @@
 import Foundation
 import CoreData
 
+
 final class CoreDataManager {
     static let shared = CoreDataManager()
     
@@ -23,13 +24,13 @@ final class CoreDataManager {
         return container
     }()
     
-    private var viewContext: NSManagedObjectContext {
+    var viewContext: NSManagedObjectContext {
         persistentContainer.viewContext
     }
     
-    internal func newBackgroundContext() -> NSManagedObjectContext {
-        persistentContainer.newBackgroundContext()
-    }
+//    internal func newBackgroundContext() -> NSManagedObjectContext {
+//        persistentContainer.newBackgroundContext()
+//    }
     
     internal func saveContext() {
         save(viewContext)
@@ -88,7 +89,8 @@ final class CoreDataManager {
 
     
     func addTask(from model: TaskModel) {
-        let context = newBackgroundContext()
+//        let context = newBackgroundContext()
+        let context = viewContext
         context.perform {
             self._addOrUpdate(model, in: context)
             self.save(context)
@@ -96,7 +98,8 @@ final class CoreDataManager {
     }
     
     func addTasks(_ models: [TaskModel]) {
-        let context = newBackgroundContext()
+//        let context = newBackgroundContext()
+        let context = viewContext
         context.perform {
             models.forEach { self._addOrUpdate($0, in: context) }
             self.save(context)
@@ -115,6 +118,7 @@ final class CoreDataManager {
             print("Task deleted with id: \(id)")
         }
     }
+    
 
     func deleteAllTasks() {
         viewContext.perform {

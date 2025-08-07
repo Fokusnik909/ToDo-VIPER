@@ -12,9 +12,25 @@ import CoreData
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
-
+    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        let navBarAppearance = UINavigationBarAppearance()
+        navBarAppearance.configureWithOpaqueBackground()
+        navBarAppearance.backgroundColor = .blackTD
+        navBarAppearance.titleTextAttributes = [
+            .foregroundColor: UIColor.whiteTD,
+            .font: UIFont.systemFont(ofSize: 17, weight: .semibold)
+        ]
+        navBarAppearance.largeTitleTextAttributes = [
+            .foregroundColor: UIColor.whiteTD,
+            .font: UIFont.boldSystemFont(ofSize: 34)
+        ]
+        
+        let navBar = UINavigationBar.appearance()
+        navBar.standardAppearance = navBarAppearance
+        navBar.scrollEdgeAppearance = navBarAppearance
+        navBar.compactAppearance = navBarAppearance
+        navBar.tintColor = .yellowTD
         return true
     }
 

@@ -14,18 +14,26 @@ protocol TasksListInteractorProtocol: AnyObject {
     func deleteTask(_ task: TaskModel)
 }
 
-final class TasksListInteractor: TasksListInteractorProtocol {
+final class TasksListInteractor: NSObject, TasksListInteractorProtocol {
     weak var presenter: TasksListPresenterProtocol?
     
     private let networkService: NetworkServiceProtocol
-    private let coreDataManager = CoreDataManager.shared
+    private let taskStore: TaskManagerProtocol
     
-    init(networkService: NetworkServiceProtocol) {
+//    init(networkService: NetworkServiceProtocol) {
+//        self.networkService = networkService
+//    }
+    
+    init(networkService: NetworkServiceProtocol, delegate: DataProviderDelegate) {
         self.networkService = networkService
+        let dataProvider = DataProvider(context: CoreDataManager.shared.viewContext, delegate: delegate)
+        self.taskStore = dataProvider
+        
+        super.init()
     }
     
     func fetchTasks() {
-        coreDataManager.fetchTasks { [weak self] localTasks in
+        CoreDataManager.shared.fetchTasks { [weak self] localTasks in
             guard let self = self else { return }
             
             if localTasks.isEmpty {
@@ -33,43 +41,68 @@ final class TasksListInteractor: TasksListInteractorProtocol {
                     switch result {
                     case .success(let dtos):
                         let models = dtos.map { TaskModel(from: $0) }
-                        self.coreDataManager.addTasks(models)
+//                        self.coreDataManager.addTasks(models)
+                        CoreDataManager.shared.addTasks(models)
                         
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                            self.coreDataManager.fetchTasks { updated in
-                                let finalModels = updated.map { TaskModel(from: $0) }
-                                self.presenter?.didLoadTasks(finalModels)
-                            }
-                        }
+//                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+//                            self.coreDataManager.fetchTasks { updated in
+//                                let finalModels = updated.map { TaskModel(from: $0) }
+//                                self.presenter?.didLoadTasks(finalModels)
+//                            }
+//                        }
                         
                     case .failure(let error):
                         self.presenter?.didFailLoadingTasks(with: error.localizedDescription)
                     }
                 }
-            } else {
-                let models = localTasks.map { TaskModel(from: $0) }
-                self.presenter?.didLoadTasks(models)
             }
+//            else {
+//                let models = localTasks.map { TaskModel(from: $0) }
+//                self.presenter?.didLoadTasks(models)
+//            }
         }
     }
     
     func searchTasks(query: String) {
-        coreDataManager.searchTasks(query: query) { [weak self] results in
-            let models = results.map { TaskModel(from: $0) }
-            self?.presenter?.didLoadTasks(models)
-        }
+        //        coreDataManager.searchTasks(query: query) { [weak self] results in
+        //            let models = results.map { TaskModel(from: $0) }
+        //            self?.presenter?.didLoadTasks(models)
+        taskStore.searchTasks(with: query)
     }
     
+    
     func deleteTask(_ task: TaskModel) {
-        CoreDataManager.shared.deleteTask(with: task.id)
-        fetchTasks()
+        //        CoreDataManager.shared.deleteTask(with: task.id)
+        //        fetchTasks()
+        guard let indexPath = findIndexPath(for: task) else { return }
+        taskStore.deleteTask(at: indexPath)
     }
     
     func toggleTaskCompletion(task: TaskModel) {
+//        var updated = task
+//        updated.isCompleted.toggle()
+//        presenter?.updateTaskInView(updated)
+        //        self.coreDataManager.addTask(from: updated)
+        //        self.fetchTasks()
         var updated = task
         updated.isCompleted.toggle()
-        presenter?.updateTaskInView(updated)
-        self.coreDataManager.addTask(from: updated)
-        self.fetchTasks()
+        CoreDataManager.shared.addTask(from: updated)
+    }
+    
+    private func findIndexPath(for task: TaskModel) -> IndexPath? {
+        for row in 0..<taskStore.numberOfTasks {
+            let indexPath = IndexPath(row: row, section: 0)
+            if taskStore.task(at: indexPath).id == task.id {
+                return indexPath
+            }
+        }
+        return nil
     }
 }
+
+extension TasksListInteractor: DataProviderDelegate {
+    func didUpdate(_ update: TaskStoreUpdate) {
+        presenter?.didUpdateTable(update: update, count: taskStore.numberOfTasks)
+    }
+}
+

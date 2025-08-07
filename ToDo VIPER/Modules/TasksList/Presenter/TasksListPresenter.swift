@@ -18,10 +18,12 @@ protocol TasksListPresenterProtocol: AnyObject {
     func didLoadTasks(_ tasks: [TaskModel])
     func didFailLoadingTasks(with message: String)
     func updateTaskInView(_ task: TaskModel)
+    
+    func didUpdateTable(update: TaskStoreUpdate, count: Int)
+
 }
 
 final class TasksListPresenter: TasksListPresenterProtocol {
-    
     weak var view: TasksListViewProtocol?
     private let interactor: TasksListInteractorProtocol
     private let router: TasksListRouterProtocol
@@ -57,6 +59,10 @@ final class TasksListPresenter: TasksListPresenterProtocol {
         router.openEditor(viewController: editorVC)
     }
     
+    func didUpdateTable(update: TaskStoreUpdate, count: Int) {
+        print("2")
+    }
+    
     //MARK: - Task Interactions
     func didToggleTaskCompletion(_ task: TaskModel) {
         interactor.toggleTaskCompletion(task: task)
@@ -73,7 +79,7 @@ final class TasksListPresenter: TasksListPresenterProtocol {
     //MARK: - Data Presentation
     func didLoadTasks(_ tasks: [TaskModel]) {
         self.tasks = tasks
-        view?.showTasks(tasks)
+//        view?.showTasks(tasks)
     }
     
     func didFailLoadingTasks(with message: String) {

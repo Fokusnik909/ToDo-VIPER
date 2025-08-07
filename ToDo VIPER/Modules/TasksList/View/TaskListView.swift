@@ -9,12 +9,13 @@ import UIKit
 protocol TasksListViewProtocol: AnyObject {
     func showTasks(_ tasks: [TaskModel])
     func showError(_ message: String)
+//    func removeTask(at indexPath: IndexPath)
 }
 
 final class TasksListView: UIViewController, TasksListViewProtocol {
     var presenter: TasksListPresenterProtocol!
 
-    private var tasks: [TaskModel] = []
+    private var taskStore: TaskManagerProtocol!
 
     private let searchController = UISearchController(searchResultsController: nil)
     private let tableView = UITableView()
@@ -23,18 +24,14 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        taskStore = DataProvider(context: CoreDataManager.shared.viewContext, delegate: self)
         setupUI()
         presenter.viewDidLoad()
     }
-
+    
+    
     func showTasks(_ tasks: [TaskModel]) {
-        let oldCount = self.tasks.count
-        self.tasks = tasks
-        tableView.reloadData()
-
-        if oldCount != tasks.count {
-            footerView.updateCount(tasks.count)
-        }
+        footerView.updateCount(tasks.count)
     }
 
     func showError(_ message: String) {
@@ -42,7 +39,6 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
         alert.addAction(UIAlertAction(title: "ОК", style: .default))
         present(alert, animated: true)
     }
-
     
     //MARK: - Private Methods
     
@@ -53,10 +49,10 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
     
     private func setupUI() {
         view.backgroundColor = .blackTD
-        customizeSearchBar()
         setupNavigationController()
+        customizeSearchBar()
         setupTableView()
- 
+        
         view.addSubview(tableView)
         view.addSubview(footerView)
         view.addSubview(footerInsetView)
@@ -65,7 +61,7 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
         footerInsetView.translatesAutoresizingMaskIntoConstraints = false
         footerView.translatesAutoresizingMaskIntoConstraints = false
         
-        footerView.updateCount(tasks.count)
+        footerView.updateCount(taskStore.numberOfTasks)
         footerView.addButton.addTarget(self, action: #selector(addTapped), for: .touchUpInside)
 
         // Layout
@@ -91,14 +87,8 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
         title = "Задачи"
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.largeTitleDisplayMode = .inline
-        
-        navigationController?.navigationBar.largeTitleTextAttributes = [
-            .foregroundColor: UIColor.whiteTD,
-            .font: UIFont.boldSystemFont(ofSize: 34)
-        ]
-        
+        navigationItem.hidesSearchBarWhenScrolling = false
         navigationItem.backButtonTitle = "Назад"
-        navigationController?.navigationBar.tintColor = .yellowTD
     }
     
     private func setupTableView() {
@@ -133,37 +123,54 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
     
 }
 
-
+//MARK: - UITableViewDataSource
 extension TasksListView: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        tasks.count
+        taskStore.numberOfTasks
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let task = tasks[indexPath.row]
+
+        guard let task = taskStore?.task(at: indexPath) else { return UITableViewCell() }
         let cell = tableView.dequeueReusableCell(withIdentifier: TaskCell.reuseId, for: indexPath) as! TaskCell
-        
         cell.configure(with: task)
         cell.onToggleCompletion = { [weak self] updatedTask in
             self?.presenter.didToggleTaskCompletion(updatedTask)
         }
-
-        return cell
+        return cell 
+    }
+    
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
+    
+    func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {
+        return .delete
+    }
+    
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            taskStore.deleteTask(at: indexPath)
+        }
     }
     
 }
 
+
+//MARK: - UITableViewDelegate
 extension TasksListView: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        presenter.didSelectTask(tasks[indexPath.row])
+        let task = taskStore.task(at: indexPath)
+        presenter.didSelectTask(task)
         tableView.deselectRow(at: indexPath, animated: true)
+        
     }
         
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
-        let task = tasks[indexPath.row]
+        let task = taskStore.task(at: indexPath)
 
         return UIContextMenuConfiguration(identifier: indexPath as NSIndexPath, previewProvider: nil, actionProvider: { _ in
-            return self.makeContextMenu(for: task)
+            return self.makeContextMenu(for: task, indexPath: indexPath)
         })
     }
     
@@ -173,7 +180,7 @@ extension TasksListView: UITableViewDelegate {
             return nil
         }
         
-        let task = tasks[indexPath.row]
+        let task = taskStore.task(at: indexPath)
         cell.configure(with: task, forPreview: true)
 
         let param = UIPreviewParameters()
@@ -188,14 +195,14 @@ extension TasksListView: UITableViewDelegate {
             return nil
         }
         
-        let task = tasks[indexPath.row]
+        let task = taskStore.task(at: indexPath)
         cell.configure(with: task, forPreview: false)
         
 
         return UITargetedPreview(view: cell)
     }
     
-    private func makeContextMenu(for task: TaskModel) -> UIMenu {
+    private func makeContextMenu(for task: TaskModel, indexPath: IndexPath) -> UIMenu {
         let edit = UIAction(title: "Редактировать", image: UIImage(systemName: "square.and.pencil")) { _ in
             self.presenter.didSelectTask(task)
         }
@@ -208,7 +215,8 @@ extension TasksListView: UITableViewDelegate {
         }
         
         let delete = UIAction(title: "Удалить", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
-            self?.presenter.didRequestDelete(task)
+            guard let self = self else { return }
+            taskStore.deleteTask(at: indexPath)
         }
         
         return UIMenu(title: "", children: [edit, share, delete])
@@ -218,7 +226,28 @@ extension TasksListView: UITableViewDelegate {
 
 extension TasksListView: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
-        presenter.didSearch(query: searchController.searchBar.text ?? "")
+        taskStore.searchTasks(with: searchController.searchBar.text ?? "")
     }
 }
 
+extension TasksListView: DataProviderDelegate {
+    func didUpdate(_ update: TaskStoreUpdate) {
+        let section = 0
+        
+        if update.insertedIndexes.isEmpty &&
+            update.updatedIndexes.isEmpty &&
+            update.deletedIndexes.isEmpty {
+            tableView.reloadData()
+        } else {
+            let safeUpdatedIndexes = update.updatedIndexes.subtracting(update.deletedIndexes)
+            
+            tableView.performBatchUpdates {
+                tableView.deleteRows(at: update.deletedIndexes.map { IndexPath(row: $0, section: section) }, with: .fade)
+                tableView.insertRows(at: update.insertedIndexes.map { IndexPath(row: $0, section: section) }, with: .fade)
+                tableView.reloadRows(at: safeUpdatedIndexes.map { IndexPath(row: $0, section: section) }, with: .fade)
+            }
+        }
+        footerView.updateCount(taskStore.numberOfTasks)
+    }
+    
+}
