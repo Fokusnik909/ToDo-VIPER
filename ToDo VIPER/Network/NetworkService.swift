@@ -1,17 +1,23 @@
 //
-//  Untitled.swift
+//  NetworkService.swift
 //  ToDo VIPER
 //
 //  Created by Артур  Арсланов on 01.08.2025.
 //
 
 import Foundation
-//"https://dummyjson.com/todos"
+
 protocol NetworkServiceProtocol {
     func fetchTasks(completion: @escaping (Result<[NetworkTaskDTO], Error>) -> Void)
 }
 
 final class NetworkService: NetworkServiceProtocol {
+    private let session: URLSession
+    
+    init(session: URLSession = .shared) {
+        self.session = session
+    }
+    
     func fetchTasks(completion: @escaping (Result<[NetworkTaskDTO], Error>) -> Void) {
         guard let url = URL(string: "https://dummyjson.com/todos") else {
             DispatchQueue.main.async {
@@ -22,7 +28,7 @@ final class NetworkService: NetworkServiceProtocol {
 
         let request = URLRequest(url: url)
 
-        URLSession.shared.dataTask(with: request) { data, response, error in
+        session.dataTask(with: request) { data, response, error in
             if let error = error {
                 DispatchQueue.main.async {
                     completion(.failure(error))

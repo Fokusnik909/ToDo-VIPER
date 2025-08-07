@@ -89,8 +89,6 @@ final class CoreDataManager {
 
     
     func addTask(from model: TaskModel) {
-//        let context = newBackgroundContext()
-        
         let context = viewContext
         context.perform {
             self._addOrUpdate(model, in: context)

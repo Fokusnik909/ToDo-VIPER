@@ -6,8 +6,19 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		C8C12B002E45149100DF4255 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C892AAFE2E3BDAC200492DE3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C892AB052E3BDAC200492DE3;
+			remoteInfo = "ToDo VIPER";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		C892AB062E3BDAC200492DE3 /* ToDo VIPER.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ToDo VIPER.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C8C12AFC2E45149100DF4255 /* ToDo VIPERTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ToDo VIPERTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -29,10 +40,22 @@
 			path = "ToDo VIPER";
 			sourceTree = "<group>";
 		};
+		C8C12AFD2E45149100DF4255 /* ToDo VIPERTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "ToDo VIPERTests";
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		C892AB032E3BDAC200492DE3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C8C12AF92E45149100DF4255 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -46,6 +69,7 @@
 			isa = PBXGroup;
 			children = (
 				C892AB082E3BDAC200492DE3 /* ToDo VIPER */,
+				C8C12AFD2E45149100DF4255 /* ToDo VIPERTests */,
 				C892AB072E3BDAC200492DE3 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -54,6 +78,7 @@
 			isa = PBXGroup;
 			children = (
 				C892AB062E3BDAC200492DE3 /* ToDo VIPER.app */,
+				C8C12AFC2E45149100DF4255 /* ToDo VIPERTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -83,6 +108,29 @@
 			productReference = C892AB062E3BDAC200492DE3 /* ToDo VIPER.app */;
 			productType = "com.apple.product-type.application";
 		};
+		C8C12AFB2E45149100DF4255 /* ToDo VIPERTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C8C12B022E45149100DF4255 /* Build configuration list for PBXNativeTarget "ToDo VIPERTests" */;
+			buildPhases = (
+				C8C12AF82E45149100DF4255 /* Sources */,
+				C8C12AF92E45149100DF4255 /* Frameworks */,
+				C8C12AFA2E45149100DF4255 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C8C12B012E45149100DF4255 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				C8C12AFD2E45149100DF4255 /* ToDo VIPERTests */,
+			);
+			name = "ToDo VIPERTests";
+			packageProductDependencies = (
+			);
+			productName = "ToDo VIPERTests";
+			productReference = C8C12AFC2E45149100DF4255 /* ToDo VIPERTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -95,6 +143,10 @@
 				TargetAttributes = {
 					C892AB052E3BDAC200492DE3 = {
 						CreatedOnToolsVersion = 16.2;
+					};
+					C8C12AFB2E45149100DF4255 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = C892AB052E3BDAC200492DE3;
 					};
 				};
 			};
@@ -114,12 +166,20 @@
 			projectRoot = "";
 			targets = (
 				C892AB052E3BDAC200492DE3 /* ToDo VIPER */,
+				C8C12AFB2E45149100DF4255 /* ToDo VIPERTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		C892AB042E3BDAC200492DE3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C8C12AFA2E45149100DF4255 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -136,7 +196,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C8C12AF82E45149100DF4255 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C8C12B012E45149100DF4255 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C892AB052E3BDAC200492DE3 /* ToDo VIPER */;
+			targetProxy = C8C12B002E45149100DF4255 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		C892AB1D2E3BDAC400492DE3 /* Debug */ = {
@@ -328,6 +403,42 @@
 			};
 			name = Release;
 		};
+		C8C12B032E45149100DF4255 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6PAZ9BLJ5P;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.myorganization.ToDo-VIPERTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ToDo VIPER.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ToDo VIPER";
+			};
+			name = Debug;
+		};
+		C8C12B042E45149100DF4255 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6PAZ9BLJ5P;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.myorganization.ToDo-VIPERTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ToDo VIPER.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ToDo VIPER";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -345,6 +456,15 @@
 			buildConfigurations = (
 				C892AB1D2E3BDAC400492DE3 /* Debug */,
 				C892AB1E2E3BDAC400492DE3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C8C12B022E45149100DF4255 /* Build configuration list for PBXNativeTarget "ToDo VIPERTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C8C12B032E45149100DF4255 /* Debug */,
+				C8C12B042E45149100DF4255 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
