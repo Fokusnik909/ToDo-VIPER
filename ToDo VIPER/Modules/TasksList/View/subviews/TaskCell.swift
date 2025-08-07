@@ -62,7 +62,7 @@ final class TaskCell: UITableViewCell {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupLayout()
         checkboxButton.addTarget(self, action: #selector(checkboxTapped), for: .touchUpInside)
-        backgroundColor = .clear
+        backgroundColor = .blackTD
         selectionStyle = .none
     }
     
@@ -137,13 +137,13 @@ final class TaskCell: UITableViewCell {
             containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             containerView.heightAnchor.constraint(equalToConstant: 90),
             
-            checkboxButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            checkboxButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             checkboxButton.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
             checkboxButton.widthAnchor.constraint(equalToConstant: 24),
             checkboxButton.heightAnchor.constraint(equalToConstant: 24),
             
             titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
             descriptionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 6),
             descriptionLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
