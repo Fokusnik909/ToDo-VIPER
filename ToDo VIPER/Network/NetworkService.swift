@@ -29,6 +29,7 @@ final class NetworkService: NetworkServiceProtocol {
         let request = URLRequest(url: url)
 
         session.dataTask(with: request) { data, response, error in
+            assert(!Thread.isMainThread, " Загрузка и парсинг не должны быть на главном потоке!")
             if let error = error {
                 DispatchQueue.main.async {
                     completion(.failure(error))

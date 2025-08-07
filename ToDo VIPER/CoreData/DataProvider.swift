@@ -56,11 +56,27 @@ final class DataProvider: NSObject {
         return fetchedResultsController
     }()
     
-    init(context: NSManagedObjectContext, delegate: DataProviderDelegate? = nil) {
-        self.context = context
-        self.dataStore = CoreDataManager.shared
+    init(dataStore: CoreDataManager = .shared, delegate: DataProviderDelegate? = nil) {
+        self.dataStore = dataStore
+        self.context = dataStore.viewContext
         self.delegate = delegate
         super.init()
+        
+        print("DataProvider инициализирован на главном потоке: \(Thread.isMainThread)")
+        print("Тип контекста: \(context.concurrencyType == .mainQueueConcurrencyType ? "mainQueue" : "privateQueue")")
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(contextDidSave(_:)),
+            name: .NSManagedObjectContextDidSave,
+            object: nil
+        )
+    }
+
+    @objc private func contextDidSave(_ notification: Notification) {
+        context.perform {
+            self.context.mergeChanges(fromContextDidSave: notification)
+        }
     }
 }
 
@@ -99,15 +115,18 @@ extension DataProvider: TaskManagerProtocol {
     }
     
     func deleteTask(at indexPath: IndexPath) {
-        let task = fetchedResultsController.object(at: indexPath)
-        context.delete(task)
-        
-        do {
-            try context.save()
-        } catch {
-            print("Failed to save after deleting task: \(error)")
+        context.perform {
+            let task = self.fetchedResultsController.object(at: indexPath)
+            self.context.delete(task)
+            
+            do {
+                try self.context.save()
+            } catch {
+                print("Delete save error: \(error)")
+            }
         }
     }
+
     
 }
 
@@ -128,10 +147,14 @@ extension DataProvider: NSFetchedResultsControllerDelegate {
         )
 
         let isFullReload = deletedIndexes.isEmpty && updatedIndexes.isEmpty && !insertedIndexes.isEmpty
-        if isFullReload {
-            delegate?.didUpdate(TaskStoreUpdate(insertedIndexes: [], updatedIndexes: [], deletedIndexes: []))
-        } else {
-            delegate?.didUpdate(update)
+        
+        DispatchQueue.main.async {
+            assert(Thread.isMainThread, "controllerDidChangeContent: обновление UI не на главном потоке!")
+            self.delegate?.didUpdate(
+                isFullReload
+                ? TaskStoreUpdate(insertedIndexes: [], updatedIndexes: [], deletedIndexes: [])
+                : update
+            )
         }
     }
 
@@ -145,6 +168,11 @@ extension DataProvider: NSFetchedResultsControllerDelegate {
         case .insert:
             if let newIndexPath = newIndexPath {
                 insertedIndexes.insert(newIndexPath.item)
+            }
+        case .move:
+            if let from = indexPath, let to = newIndexPath {
+                deletedIndexes.insert(from.item)
+                insertedIndexes.insert(to.item)
             }
         case.update:
             if let indexPath = indexPath {

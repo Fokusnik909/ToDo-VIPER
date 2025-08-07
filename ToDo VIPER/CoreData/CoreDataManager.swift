@@ -21,6 +21,9 @@ final class CoreDataManager {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
         })
+        
+        container.viewContext.automaticallyMergesChangesFromParent = true
+        
         return container
     }()
     
@@ -28,9 +31,9 @@ final class CoreDataManager {
         persistentContainer.viewContext
     }
     
-//    internal func newBackgroundContext() -> NSManagedObjectContext {
-//        persistentContainer.newBackgroundContext()
-//    }
+    internal func newBackgroundContext() -> NSManagedObjectContext {
+        persistentContainer.newBackgroundContext()
+    }
     
     internal func saveContext() {
         save(viewContext)
@@ -57,14 +60,21 @@ final class CoreDataManager {
     // MARK: - CRUD
 
     func fetchTasks(completion: @escaping ([ToDoCoreData]) -> Void) {
-        viewContext.perform {
+        let context = newBackgroundContext()
+        context.perform {
+            assert(!Thread.isMainThread, " fetchTasks: выполняется на главном потоке!")
+            
             let request: NSFetchRequest<ToDoCoreData> = ToDoCoreData.fetchRequest()
             do {
-                let tasks = try self.viewContext.fetch(request)
-                completion(tasks)
+                let tasks = try context.fetch(request)
+                DispatchQueue.main.async {
+                    completion(tasks)
+                }
             } catch {
                 print("Failed to fetch tasks: \(error)")
-                completion([])
+                DispatchQueue.main.async {
+                    completion([])
+                }
             }
         }
     }
@@ -89,45 +99,54 @@ final class CoreDataManager {
 
     
     func addTask(from model: TaskModel) {
-        let context = viewContext
+        let context = newBackgroundContext()
         context.perform {
+            assert(!Thread.isMainThread, "addTask: выполняется на главном потоке!")
             self._addOrUpdate(model, in: context)
             self.save(context)
         }
     }
     
     func addTasks(_ models: [TaskModel]) {
-        let context = viewContext
+        let context = newBackgroundContext()
         context.perform {
+            assert(!Thread.isMainThread, "addTasks: выполняется на главном потоке!")
             models.forEach { self._addOrUpdate($0, in: context) }
             self.save(context)
         }
     }
 
     func deleteTask(with id: Int64) {
-        fetchTasks { tasks in
-            guard let taskToDelete = tasks.first(where: { $0.id == id }) else {
-                print("Task not found for id: \(id)")
-                return
-            }
+        let context = newBackgroundContext()
+        context.perform {
+            let request: NSFetchRequest<ToDoCoreData> = ToDoCoreData.fetchRequest()
+            request.predicate = NSPredicate(format: "id == %d", id)
+            request.fetchLimit = 1
             
-            self.viewContext.delete(taskToDelete)
-            self.saveContext()
-            print("Task deleted with id: \(id)")
+            do {
+                if let task = try context.fetch(request).first {
+                    context.delete(task)
+                    self.save(context)
+                    print("Task deleted with id: \(id)")
+                }
+            } catch {
+                print("Error deleting task: \(error)")
+            }
         }
     }
     
 
     func deleteAllTasks() {
-        viewContext.perform {
+        let context = newBackgroundContext()
+        context.perform {
             let fetchRequest: NSFetchRequest<NSFetchRequestResult> = ToDoCoreData.fetchRequest()
             let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
             do {
-                try self.viewContext.execute(deleteRequest)
-                self.save(self.viewContext)
+                try context.execute(deleteRequest)
+                self.save(context)
                 print("Все задачи удалены")
             } catch {
-                print("Ошибка удаления: \(error.localizedDescription)")
+                print("Ошибка удаления: \(error)")
             }
         }
     }
@@ -135,6 +154,7 @@ final class CoreDataManager {
     //MARK: - Private method
     private func save(_ context: NSManagedObjectContext) {
         if context.hasChanges {
+            assert(!Thread.isMainThread, "save: выполняется на главном потоке!")
             do {
                 try context.save()
             } catch {

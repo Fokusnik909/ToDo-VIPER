@@ -80,10 +80,12 @@ final class TasksListPresenter: TasksListPresenterProtocol {
     }
     
     func didFailLoadingTasks(with message: String) {
+        assert(Thread.isMainThread, " didFailLoadingTasks: вызывается не на главном потоке!")
         view?.showError(message)
     }
 
     func didUpdateTable(update: TaskStoreUpdate, count: Int) {
+        assert(Thread.isMainThread, " didUpdateTable: вызывается не на главном потоке!")
         view?.updateTable(with: update, totalCount: count)
     }
     
