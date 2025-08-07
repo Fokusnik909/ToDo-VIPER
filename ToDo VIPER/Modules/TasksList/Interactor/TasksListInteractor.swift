@@ -24,11 +24,9 @@ final class TasksListInteractor: NSObject, TasksListInteractorProtocol {
 //        self.networkService = networkService
 //    }
     
-    init(networkService: NetworkServiceProtocol, delegate: DataProviderDelegate) {
+    init(networkService: NetworkServiceProtocol, taskStore: TaskManagerProtocol) {
         self.networkService = networkService
-        let dataProvider = DataProvider(context: CoreDataManager.shared.viewContext, delegate: delegate)
-        self.taskStore = dataProvider
-        
+        self.taskStore = taskStore
         super.init()
     }
     
@@ -44,8 +42,9 @@ final class TasksListInteractor: NSObject, TasksListInteractorProtocol {
 //                        self.coreDataManager.addTasks(models)
                         CoreDataManager.shared.addTasks(models)
                         
+                        
 //                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-//                            self.coreDataManager.fetchTasks { updated in
+//                            CoreDataManager.shared.fetchTasks { updated in
 //                                let finalModels = updated.map { TaskModel(from: $0) }
 //                                self.presenter?.didLoadTasks(finalModels)
 //                            }

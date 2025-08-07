@@ -90,6 +90,7 @@ final class CoreDataManager {
     
     func addTask(from model: TaskModel) {
 //        let context = newBackgroundContext()
+        
         let context = viewContext
         context.perform {
             self._addOrUpdate(model, in: context)
@@ -98,6 +99,7 @@ final class CoreDataManager {
     }
     
     func addTasks(_ models: [TaskModel]) {
+        print("Добавляем \(models.count) задач в Core Data")
 //        let context = newBackgroundContext()
         let context = viewContext
         context.perform {

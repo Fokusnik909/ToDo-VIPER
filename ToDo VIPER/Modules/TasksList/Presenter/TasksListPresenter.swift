@@ -4,7 +4,6 @@
 //
 //  Created by Артур  Арсланов on 31.07.2025.
 //
-
 import Foundation
 
 protocol TasksListPresenterProtocol: AnyObject {
@@ -15,43 +14,45 @@ protocol TasksListPresenterProtocol: AnyObject {
     func didSearch(query: String)
     func didRequestDelete(_ task: TaskModel)
     
-    func didLoadTasks(_ tasks: [TaskModel])
+//    func didLoadTasks(_ tasks: [TaskModel])
     func didFailLoadingTasks(with message: String)
-    func updateTaskInView(_ task: TaskModel)
+//    func updateTaskInView(_ task: TaskModel)
     
     func didUpdateTable(update: TaskStoreUpdate, count: Int)
-
+    
+    var numberOfTasks: Int { get }
+    func task(at indexPath: IndexPath) -> TaskModel
 }
 
 final class TasksListPresenter: TasksListPresenterProtocol {
     weak var view: TasksListViewProtocol?
-    private let interactor: TasksListInteractorProtocol
+    private var interactor: TasksListInteractorProtocol?
     private let router: TasksListRouterProtocol
     
-    private var tasks: [TaskModel] = []
-    
+//    private var tasks: [TaskModel] = []
+    private let taskStore: TaskManagerProtocol
+
     init(view: TasksListViewProtocol,
-         interactor: TasksListInteractorProtocol,
-         router: TasksListRouterProtocol) {
+         router: TasksListRouterProtocol, taskStore: TaskManagerProtocol) {
         self.view = view
-        self.interactor = interactor
         self.router = router
+        self.taskStore = taskStore
     }
-    
-    //MARK: - View Lifecycle
+
+    // MARK: - View Lifecycle
     func viewDidLoad() {
-        interactor.fetchTasks()
+        interactor?.fetchTasks()
 //        CoreDataManager.shared.deleteAllTasks()
     }
-    
-    //MARK: - Navigation
+
+    // MARK: - UI Events
     func didTapAddTask() {
         let editorVC = TaskEditorBuilder.build(with: .add) { [weak self] in
             self?.viewDidLoad()
         }
         router.openEditor(viewController: editorVC)
     }
-    
+
     func didSelectTask(_ task: TaskModel) {
         let editorVC = TaskEditorBuilder.build(with: .edit(task)) { [weak self] in
             self?.viewDidLoad()
@@ -59,36 +60,38 @@ final class TasksListPresenter: TasksListPresenterProtocol {
         router.openEditor(viewController: editorVC)
     }
     
-    func didUpdateTable(update: TaskStoreUpdate, count: Int) {
-        print("2")
-    }
-    
-    //MARK: - Task Interactions
+
     func didToggleTaskCompletion(_ task: TaskModel) {
-        interactor.toggleTaskCompletion(task: task)
+        interactor?.toggleTaskCompletion(task: task)
     }
-    
+
     func didSearch(query: String) {
-        interactor.searchTasks(query: query)
+        interactor?.searchTasks(query: query)
     }
-    
+
     func didRequestDelete(_ task: TaskModel) {
-        interactor.deleteTask(task)
+        interactor?.deleteTask(task)
     }
     
-    //MARK: - Data Presentation
-    func didLoadTasks(_ tasks: [TaskModel]) {
-        self.tasks = tasks
-//        view?.showTasks(tasks)
+    func setInteractor(_ interactor: TasksListInteractorProtocol) {
+        self.interactor = interactor
+    }
+
+    // MARK: - Data Presentation
+    var numberOfTasks: Int {
+        taskStore.numberOfTasks
+    }
+    
+    func task(at indexPath: IndexPath) -> TaskModel {
+        taskStore.task(at: indexPath)
     }
     
     func didFailLoadingTasks(with message: String) {
         view?.showError(message)
     }
-    
-    func updateTaskInView(_ task: TaskModel) {
-        guard let index = tasks.firstIndex(where: { $0.id == task.id }) else { return }
-        tasks[index] = task
-        view?.showTasks(tasks)
+
+    func didUpdateTable(update: TaskStoreUpdate, count: Int) {
+        view?.updateTable(with: update, totalCount: count)
     }
+    
 }

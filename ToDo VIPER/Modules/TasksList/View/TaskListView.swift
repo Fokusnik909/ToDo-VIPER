@@ -9,13 +9,12 @@ import UIKit
 protocol TasksListViewProtocol: AnyObject {
     func showTasks(_ tasks: [TaskModel])
     func showError(_ message: String)
+    func updateTable(with update: TaskStoreUpdate, totalCount: Int)
 //    func removeTask(at indexPath: IndexPath)
 }
 
-final class TasksListView: UIViewController, TasksListViewProtocol {
+final class TasksListView: UIViewController {
     var presenter: TasksListPresenterProtocol!
-
-    private var taskStore: TaskManagerProtocol!
 
     private let searchController = UISearchController(searchResultsController: nil)
     private let tableView = UITableView()
@@ -24,24 +23,11 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        taskStore = DataProvider(context: CoreDataManager.shared.viewContext, delegate: self)
         setupUI()
         presenter.viewDidLoad()
     }
-    
-    
-    func showTasks(_ tasks: [TaskModel]) {
-        footerView.updateCount(tasks.count)
-    }
 
-    func showError(_ message: String) {
-        let alert = UIAlertController(title: "Ошибка", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "ОК", style: .default))
-        present(alert, animated: true)
-    }
-    
     //MARK: - Private Methods
-    
     @objc private func addTapped() {
         print("addTapped")
         presenter.didTapAddTask()
@@ -61,7 +47,7 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
         footerInsetView.translatesAutoresizingMaskIntoConstraints = false
         footerView.translatesAutoresizingMaskIntoConstraints = false
         
-        footerView.updateCount(taskStore.numberOfTasks)
+//        footerView.updateCount(taskStore.numberOfTasks)
         footerView.addButton.addTarget(self, action: #selector(addTapped), for: .touchUpInside)
 
         // Layout
@@ -126,18 +112,18 @@ final class TasksListView: UIViewController, TasksListViewProtocol {
 //MARK: - UITableViewDataSource
 extension TasksListView: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        taskStore.numberOfTasks
+        print(presenter.numberOfTasks)
+        return  presenter.numberOfTasks
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-
-        guard let task = taskStore?.task(at: indexPath) else { return UITableViewCell() }
+        let task = presenter.task(at: indexPath)
         let cell = tableView.dequeueReusableCell(withIdentifier: TaskCell.reuseId, for: indexPath) as! TaskCell
         cell.configure(with: task)
         cell.onToggleCompletion = { [weak self] updatedTask in
             self?.presenter.didToggleTaskCompletion(updatedTask)
         }
-        return cell 
+        return cell
     }
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
@@ -150,7 +136,9 @@ extension TasksListView: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            taskStore.deleteTask(at: indexPath)
+//            taskStore.deleteTask(at: indexPath)
+            let task = presenter.task(at: indexPath)
+            presenter.didRequestDelete(task)
         }
     }
     
@@ -160,14 +148,16 @@ extension TasksListView: UITableViewDataSource {
 //MARK: - UITableViewDelegate
 extension TasksListView: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let task = taskStore.task(at: indexPath)
+//        let task = taskStore.task(at: indexPath)
+        let task = presenter.task(at: indexPath)
         presenter.didSelectTask(task)
         tableView.deselectRow(at: indexPath, animated: true)
         
     }
         
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
-        let task = taskStore.task(at: indexPath)
+//        let task = taskStore.task(at: indexPath)
+        let task = presenter.task(at: indexPath)
 
         return UIContextMenuConfiguration(identifier: indexPath as NSIndexPath, previewProvider: nil, actionProvider: { _ in
             return self.makeContextMenu(for: task, indexPath: indexPath)
@@ -180,7 +170,7 @@ extension TasksListView: UITableViewDelegate {
             return nil
         }
         
-        let task = taskStore.task(at: indexPath)
+        let task = presenter.task(at: indexPath)
         cell.configure(with: task, forPreview: true)
 
         let param = UIPreviewParameters()
@@ -195,7 +185,8 @@ extension TasksListView: UITableViewDelegate {
             return nil
         }
         
-        let task = taskStore.task(at: indexPath)
+//        let task = taskStore.task(at: indexPath)
+        let task = presenter.task(at: indexPath)
         cell.configure(with: task, forPreview: false)
         
 
@@ -216,7 +207,8 @@ extension TasksListView: UITableViewDelegate {
         
         let delete = UIAction(title: "Удалить", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
             guard let self = self else { return }
-            taskStore.deleteTask(at: indexPath)
+//            taskStore.deleteTask(at: indexPath)
+            presenter.didRequestDelete(task)
         }
         
         return UIMenu(title: "", children: [edit, share, delete])
@@ -226,28 +218,57 @@ extension TasksListView: UITableViewDelegate {
 
 extension TasksListView: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
-        taskStore.searchTasks(with: searchController.searchBar.text ?? "")
+//        taskStore.searchTasks(with: searchController.searchBar.text ?? "")
+        presenter.didSearch(query: searchController.searchBar.text ?? "")
     }
 }
 
-extension TasksListView: DataProviderDelegate {
-    func didUpdate(_ update: TaskStoreUpdate) {
+extension TasksListView: TasksListViewProtocol {
+    func showTasks(_ tasks: [TaskModel]) {
+        tableView.reloadData()
+        footerView.updateCount(tasks.count)
+    }
+
+    func showError(_ message: String) {
+        let alert = UIAlertController(title: "Ошибка", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "ОК", style: .default))
+        present(alert, animated: true)
+    }
+    
+    func updateTable(with update: TaskStoreUpdate, totalCount: Int) {
         let section = 0
-        
         if update.insertedIndexes.isEmpty &&
             update.updatedIndexes.isEmpty &&
             update.deletedIndexes.isEmpty {
             tableView.reloadData()
         } else {
             let safeUpdatedIndexes = update.updatedIndexes.subtracting(update.deletedIndexes)
-            
             tableView.performBatchUpdates {
                 tableView.deleteRows(at: update.deletedIndexes.map { IndexPath(row: $0, section: section) }, with: .fade)
                 tableView.insertRows(at: update.insertedIndexes.map { IndexPath(row: $0, section: section) }, with: .fade)
                 tableView.reloadRows(at: safeUpdatedIndexes.map { IndexPath(row: $0, section: section) }, with: .fade)
             }
         }
-        footerView.updateCount(taskStore.numberOfTasks)
+        
+        footerView.updateCount(totalCount)
     }
+//    func didUpdate(_ update: TaskStoreUpdate) {
+//        let section = 0
+//        
+//        if update.insertedIndexes.isEmpty &&
+//            update.updatedIndexes.isEmpty &&
+//            update.deletedIndexes.isEmpty {
+//            tableView.reloadData()
+//        } else {
+//            let safeUpdatedIndexes = update.updatedIndexes.subtracting(update.deletedIndexes)
+//            
+//            tableView.performBatchUpdates {
+//                tableView.deleteRows(at: update.deletedIndexes.map { IndexPath(row: $0, section: section) }, with: .fade)
+//                tableView.insertRows(at: update.insertedIndexes.map { IndexPath(row: $0, section: section) }, with: .fade)
+//                tableView.reloadRows(at: safeUpdatedIndexes.map { IndexPath(row: $0, section: section) }, with: .fade)
+//            }
+//        }
+//        footerView.updateCount(taskStore.numberOfTasks)
+//    }
     
 }

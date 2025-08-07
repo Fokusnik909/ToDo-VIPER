@@ -44,7 +44,16 @@ final class DataProvider: NSObject {
                                                                   cacheName: nil)
         
         fetchedResultsController.delegate = self
-        try? fetchedResultsController.performFetch()
+//        try? fetchedResultsController.performFetch()
+        
+        do {
+            try fetchedResultsController.performFetch()
+            print("Initial fetch successful, count:", fetchedResultsController.fetchedObjects?.count ?? 0)
+        } catch {
+            print("Ошибка при загрузке задач: \(error)")
+        }
+        
+        
         return fetchedResultsController
     }()
     
@@ -54,10 +63,11 @@ final class DataProvider: NSObject {
 //        self.delegate = delegate
 //    }
     
-    init(context: NSManagedObjectContext, delegate: DataProviderDelegate) {
+    init(context: NSManagedObjectContext, delegate: DataProviderDelegate? = nil) {
         self.context = context
         self.dataStore = CoreDataManager.shared
         self.delegate = delegate
+        super.init()
     }
 }
 
