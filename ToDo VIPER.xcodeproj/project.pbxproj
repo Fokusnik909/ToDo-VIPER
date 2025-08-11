@@ -17,8 +17,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		C892AB062E3BDAC200492DE3 /* ToDo VIPER.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ToDo VIPER.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		C8C12AFC2E45149100DF4255 /* ToDo VIPERTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ToDo VIPERTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C892AB062E3BDAC200492DE3 /* ToDo VIPER.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "ToDo VIPER.app"; path = "/Users/arturarslanov/Desktop/100DaysOfSwiftUI/ToDo VIPER/build/Debug-iphoneos/ToDo VIPER.app"; sourceTree = "<absolute>"; };
+		C8C12AFC2E45149100DF4255 /* ToDo VIPERTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = "ToDo VIPERTests.xctest"; path = "/Users/arturarslanov/Desktop/100DaysOfSwiftUI/ToDo VIPER/build/Debug-iphoneos/ToDo VIPER.app/PlugIns/ToDo VIPERTests.xctest"; sourceTree = "<absolute>"; };
+		C8C132282E4A1DBA00DF4255 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -68,19 +69,10 @@
 		C892AAFD2E3BDAC200492DE3 = {
 			isa = PBXGroup;
 			children = (
+				C8C132282E4A1DBA00DF4255 /* README.md */,
 				C892AB082E3BDAC200492DE3 /* ToDo VIPER */,
 				C8C12AFD2E45149100DF4255 /* ToDo VIPERTests */,
-				C892AB072E3BDAC200492DE3 /* Products */,
 			);
-			sourceTree = "<group>";
-		};
-		C892AB072E3BDAC200492DE3 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				C892AB062E3BDAC200492DE3 /* ToDo VIPER.app */,
-				C8C12AFC2E45149100DF4255 /* ToDo VIPERTests.xctest */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -161,7 +153,7 @@
 			mainGroup = C892AAFD2E3BDAC200492DE3;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = C892AB072E3BDAC200492DE3 /* Products */;
+			productRefGroup = C892AAFD2E3BDAC200492DE3;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
