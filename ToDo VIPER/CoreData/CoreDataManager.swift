@@ -147,16 +147,28 @@ final class CoreDataManager {
         }
     }
     
-
+    
     func deleteAllTasks() {
         let context = newBackgroundContext()
         context.perform {
             let fetchRequest: NSFetchRequest<NSFetchRequestResult> = ToDoCoreData.fetchRequest()
+            
             let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+            deleteRequest.resultType = .resultTypeObjectIDs
+            
             do {
-                try context.execute(deleteRequest)
-                self.save(context)
-                print("Все задачи удалены")
+                let result = try context.execute(deleteRequest) as? NSBatchDeleteResult
+                if let objectIDs = result?.result as? [NSManagedObjectID], !objectIDs.isEmpty {
+                    let changes: [AnyHashable: Any] = [NSDeletedObjectsKey: objectIDs]
+
+                    let viewCtx = self.viewContext
+                    viewCtx.perform {
+                        NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [viewCtx])
+                    }
+                }
+                
+                try context.save()
+                print("Все задачи удалены (batch delete + merge)")
             } catch {
                 print("Ошибка удаления: \(error)")
             }
