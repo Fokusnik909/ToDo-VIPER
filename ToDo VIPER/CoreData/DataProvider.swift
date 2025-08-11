@@ -21,9 +21,8 @@ protocol TaskManagerProtocol {
     var numberOfTasks: Int { get }
     func task(at indexPath: IndexPath) -> TaskModel
     func searchTasks(with query: String)
-    func deleteTask(at indexPath: IndexPath)
-//    func toggleCompleted(at indexPath: IndexPath)
     func toggleCompleted(id: Int64)
+    func deleteTask(id: Int64)
 }
 
 final class DataProvider: NSObject {
@@ -66,9 +65,6 @@ final class DataProvider: NSObject {
         self.context = dataStore.viewContext
         self.delegate = delegate
         super.init()
-        
-        print("DataProvider инициализирован на главном потоке: \(Thread.isMainThread)")
-        print("Тип контекста: \(context.concurrencyType == .mainQueueConcurrencyType ? "mainQueue" : "privateQueue")")
 
         NotificationCenter.default.addObserver(
             self,
@@ -122,21 +118,17 @@ extension DataProvider: TaskManagerProtocol {
         }
     }
     
-    
-    func deleteTask(at indexPath: IndexPath) {
-        let objectID = fetchedResultsController.object(at: indexPath).objectID
-        dataStore.deleteTask(with: objectID) 
+    func deleteTask(id: Int64) { 
+        if let obj = fetchedResultsController.fetchedObjects?.first(where: { $0.id == id }) {
+            dataStore.deleteTask(with: obj.objectID)
+        }
     }
     
     func toggleCompleted(id: Int64) {
         if let obj = fetchedResultsController.fetchedObjects?.first(where: { $0.id == id }) {
             dataStore.toggleCompleted(objectID: obj.objectID)
-        } else {
-            // опционально: fallback, если объекта нет в FRC (например, при активном фильтре)
-//            dataStore.toggleCompleted(objectID: id) // если захочешь сделать удобный метод
         }
     }
-
     
 }
 

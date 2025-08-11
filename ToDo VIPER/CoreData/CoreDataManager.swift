@@ -23,6 +23,7 @@ final class CoreDataManager {
         })
         
         container.viewContext.automaticallyMergesChangesFromParent = true
+        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         
         return container
     }()
@@ -32,7 +33,9 @@ final class CoreDataManager {
     }
     
     internal func newBackgroundContext() -> NSManagedObjectContext {
-        persistentContainer.newBackgroundContext()
+        let ctx = persistentContainer.newBackgroundContext()
+        ctx.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        return ctx
     }
     
     internal func saveContext() {
@@ -80,7 +83,8 @@ final class CoreDataManager {
     }
     
     func searchTasks(query: String, completion: @escaping ([ToDoCoreData]) -> Void) {
-        viewContext.perform {
+        let context = newBackgroundContext()
+        context.perform {
             let request: NSFetchRequest<ToDoCoreData> = ToDoCoreData.fetchRequest()
             
             if !query.isEmpty {
@@ -143,7 +147,6 @@ final class CoreDataManager {
         }
     }
     
-    
 
     func deleteAllTasks() {
         let context = newBackgroundContext()
@@ -179,8 +182,6 @@ final class CoreDataManager {
             existing.title = model.title
             existing.descriptionText = model.description
             existing.isCompleted = model.isCompleted
-            existing.userid = model.userId
-//            existing.dateCreated = model.dateCreated
             print("Обновляем задачу с id \(model.id)")
         } else {
             let task = ToDoCoreData(context: context)
