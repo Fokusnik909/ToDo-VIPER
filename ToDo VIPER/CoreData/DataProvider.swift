@@ -22,6 +22,8 @@ protocol TaskManagerProtocol {
     func task(at indexPath: IndexPath) -> TaskModel
     func searchTasks(with query: String)
     func deleteTask(at indexPath: IndexPath)
+//    func toggleCompleted(at indexPath: IndexPath)
+    func toggleCompleted(id: Int64)
 }
 
 final class DataProvider: NSObject {
@@ -36,7 +38,10 @@ final class DataProvider: NSObject {
     
     private lazy var fetchedResultsController: NSFetchedResultsController<ToDoCoreData> = {
         let fetchRequest = NSFetchRequest<ToDoCoreData>(entityName: "ToDoCoreData")
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "dateCreated", ascending: true)]
+        fetchRequest.sortDescriptors = [
+            NSSortDescriptor(key: "dateCreated", ascending: true),
+            NSSortDescriptor(key: "id", ascending: true)
+        ]
         
         let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest,
                                                                   managedObjectContext: context,
@@ -92,7 +97,10 @@ extension DataProvider: TaskManagerProtocol {
     
     func searchTasks(with query: String) {
         let fetchRequest = NSFetchRequest<ToDoCoreData>(entityName: "ToDoCoreData")
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "dateCreated", ascending: true)]
+        fetchRequest.sortDescriptors = [
+            NSSortDescriptor(key: "dateCreated", ascending: true),
+            NSSortDescriptor(key: "id", ascending: true)
+        ]
 
         if !query.isEmpty {
             fetchRequest.predicate = NSPredicate(format: "title CONTAINS[cd] %@", query)
@@ -114,16 +122,18 @@ extension DataProvider: TaskManagerProtocol {
         }
     }
     
+    
     func deleteTask(at indexPath: IndexPath) {
-        context.perform {
-            let task = self.fetchedResultsController.object(at: indexPath)
-            self.context.delete(task)
-            
-            do {
-                try self.context.save()
-            } catch {
-                print("Delete save error: \(error)")
-            }
+        let objectID = fetchedResultsController.object(at: indexPath).objectID
+        dataStore.deleteTask(with: objectID) 
+    }
+    
+    func toggleCompleted(id: Int64) {
+        if let obj = fetchedResultsController.fetchedObjects?.first(where: { $0.id == id }) {
+            dataStore.toggleCompleted(objectID: obj.objectID)
+        } else {
+            // опционально: fallback, если объекта нет в FRC (например, при активном фильтре)
+//            dataStore.toggleCompleted(objectID: id) // если захочешь сделать удобный метод
         }
     }
 
@@ -156,6 +166,7 @@ extension DataProvider: NSFetchedResultsControllerDelegate {
                 : update
             )
         }
+       
     }
 
     
@@ -174,7 +185,7 @@ extension DataProvider: NSFetchedResultsControllerDelegate {
                 deletedIndexes.insert(from.item)
                 insertedIndexes.insert(to.item)
             }
-        case.update:
+        case .update:
             if let indexPath = indexPath {
                 updatedIndexes.insert(indexPath.item)
             }

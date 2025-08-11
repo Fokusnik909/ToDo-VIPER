@@ -10,7 +10,7 @@ protocol TasksListPresenterProtocol: AnyObject {
     func viewDidLoad()
     
     func didSelectTask(_ task: TaskModel)
-    func didToggleTaskCompletion(_ task: TaskModel)
+    func didToggleTaskCompletion(id: Int64)
     func didTapAddTask()
     func didSearch(query: String)
     func didRequestDelete(_ task: TaskModel)
@@ -58,8 +58,8 @@ final class TasksListPresenter: TasksListPresenterProtocol {
     }
     
 
-    func didToggleTaskCompletion(_ task: TaskModel) {
-        interactor.toggleTaskCompletion(task: task)
+    func didToggleTaskCompletion(id: Int64) {
+        interactor.toggleTaskCompletion(id: id)
     }
 
     func didSearch(query: String) {

@@ -101,7 +101,6 @@ final class CoreDataManager {
     func addTask(from model: TaskModel) {
         let context = newBackgroundContext()
         context.perform {
-            assert(!Thread.isMainThread, "addTask: выполняется на главном потоке!")
             self._addOrUpdate(model, in: context)
             self.save(context)
         }
@@ -115,25 +114,35 @@ final class CoreDataManager {
             self.save(context)
         }
     }
-
-    func deleteTask(with id: Int64) {
+    
+    func toggleCompleted(objectID: NSManagedObjectID) {
         let context = newBackgroundContext()
         context.perform {
-            let request: NSFetchRequest<ToDoCoreData> = ToDoCoreData.fetchRequest()
-            request.predicate = NSPredicate(format: "id == %d", id)
-            request.fetchLimit = 1
-            
             do {
-                if let task = try context.fetch(request).first {
-                    context.delete(task)
-                    self.save(context)
-                    print("Task deleted with id: \(id)")
+                if let obj = try? context.existingObject(with: objectID) as? ToDoCoreData {
+                    obj.isCompleted.toggle()
+                    try context.save()
                 }
             } catch {
-                print("Error deleting task: \(error)")
+                print("toggleCompleted error: \(error)")
             }
         }
     }
+    
+    func deleteTask(with objectID: NSManagedObjectID) {
+        let context = newBackgroundContext()
+        context.perform {
+            do {
+                let obj = try context.existingObject(with: objectID)
+                context.delete(obj)
+                try context.save()
+                print("Task deleted: \(objectID)")
+            } catch {
+                print("Delete save error: \(error)")
+            }
+        }
+    }
+    
     
 
     func deleteAllTasks() {
@@ -154,7 +163,6 @@ final class CoreDataManager {
     //MARK: - Private method
     private func save(_ context: NSManagedObjectContext) {
         if context.hasChanges {
-            assert(!Thread.isMainThread, "save: выполняется на главном потоке!")
             do {
                 try context.save()
             } catch {
@@ -172,7 +180,8 @@ final class CoreDataManager {
             existing.descriptionText = model.description
             existing.isCompleted = model.isCompleted
             existing.userid = model.userId
-            existing.dateCreated = model.dateCreated
+//            existing.dateCreated = model.dateCreated
+            print("Обновляем задачу с id \(model.id)")
         } else {
             let task = ToDoCoreData(context: context)
             task.id = model.id
@@ -181,6 +190,7 @@ final class CoreDataManager {
             task.isCompleted = model.isCompleted
             task.userid = model.userId
             task.dateCreated = model.dateCreated
+            print("Создаём новую задачу с id \(model.id)")
         }
     }
 }

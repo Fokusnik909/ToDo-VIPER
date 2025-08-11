@@ -62,6 +62,7 @@ final class TaskCell: UITableViewCell {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupLayout()
         checkboxButton.addTarget(self, action: #selector(checkboxTapped), for: .touchUpInside)
+        contentView.backgroundColor = .blackTD
         backgroundColor = .blackTD
         selectionStyle = .none
     }

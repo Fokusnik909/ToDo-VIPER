@@ -12,7 +12,7 @@ protocol TasksListInteractorProtocol: AnyObject {
     func task(at indexPath: IndexPath) -> TaskModel
     func fetchTasks()
     func searchTasks(query: String)
-    func toggleTaskCompletion(task: TaskModel)
+    func toggleTaskCompletion(id: Int64)
     func deleteTask(_ task: TaskModel)
 }
 
@@ -77,10 +77,15 @@ final class TasksListInteractor: TasksListInteractorProtocol {
         taskStore.task(at: indexPath)
     }
     
-    func toggleTaskCompletion(task: TaskModel) {
-        var updated = task
-        updated.isCompleted.toggle()
-        CoreDataManager.shared.addTask(from: updated)
+//    func toggleTaskCompletion(task: TaskModel) {
+//        var updated = task
+//        updated.isCompleted.toggle()
+//        CoreDataManager.shared.addTask(from: updated)
+//
+//    }
+    
+    func toggleTaskCompletion(id: Int64) {
+        taskStore.toggleCompleted(id: id)
     }
     
     private func findIndexPath(for task: TaskModel) -> IndexPath? {
