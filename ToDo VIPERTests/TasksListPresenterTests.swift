@@ -45,6 +45,14 @@ final class TasksListPresenterTests: XCTestCase {
     }
     
     final class MockInteractor: TasksListInteractorProtocol {
+        var didToggleCalled = false
+        var didToggleId: Int64?
+        
+        func toggleTaskCompletion(id: Int64) {
+            didToggleCalled = true
+            didToggleId = id
+        }
+        
         var numberOfTasks: Int = 0
         
         func task(at indexPath: IndexPath) -> ToDo_VIPER.TaskModel {
@@ -63,11 +71,7 @@ final class TasksListPresenterTests: XCTestCase {
         func searchTasks(query: String) {
             didSearchQuery = query
         }
-        
-        func toggleTaskCompletion(task: TaskModel) {
-            toggledTask = task
-        }
-        
+                
         func deleteTask(_ task: TaskModel) {
             deletedTask = task
         }
@@ -145,5 +149,17 @@ final class TasksListPresenterTests: XCTestCase {
         
         // Then
         XCTAssertTrue(router.didOpenEditor, "didSelectTask должен открыть редактор задачи")
+    }
+    
+    func test_didToggle_shouldCallInteractorWithCorrectId() {
+        // Given
+        let id: Int64 = 42
+        
+        // When
+        presenter.didToggleTaskCompletion(id: id)
+        
+        // Then
+        XCTAssertTrue(interactor.didToggleCalled)
+        XCTAssertEqual(interactor.didToggleId, id)
     }
 }

@@ -12,7 +12,7 @@ protocol TasksListInteractorProtocol: AnyObject {
     func task(at indexPath: IndexPath) -> TaskModel
     func fetchTasks()
     func searchTasks(query: String)
-    func toggleTaskCompletion(task: TaskModel)
+    func toggleTaskCompletion(id: Int64)
     func deleteTask(_ task: TaskModel)
 }
 
@@ -35,31 +35,17 @@ final class TasksListInteractor: TasksListInteractorProtocol {
     func fetchTasks() {
         CoreDataManager.shared.fetchTasks { [weak self] localTasks in
             guard let self = self else { return }
-            
             if localTasks.isEmpty {
                 self.networkService.fetchTasks { result in
                     switch result {
                     case .success(let dtos):
                         let models = dtos.map { TaskModel(from: $0) }
                         CoreDataManager.shared.addTasks(models)
-                        
-                        
-//                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-//                            CoreDataManager.shared.fetchTasks { updated in
-//                                let finalModels = updated.map { TaskModel(from: $0) }
-//                                self.presenter?.didLoadTasks(finalModels)
-//                            }
-//                        }
-                        
                     case .failure(let error):
                         self.presenter?.didFailLoadingTasks(with: error.localizedDescription)
                     }
                 }
             }
-//            else {
-//                let models = localTasks.map { TaskModel(from: $0) }
-//                self.presenter?.didLoadTasks(models)
-//            }
         }
     }
     
@@ -67,20 +53,16 @@ final class TasksListInteractor: TasksListInteractorProtocol {
         taskStore.searchTasks(with: query)
     }
     
-    
     func deleteTask(_ task: TaskModel) {
-        guard let indexPath = findIndexPath(for: task) else { return }
-        taskStore.deleteTask(at: indexPath)
+        taskStore.deleteTask(id: task.id)
     }
     
     func task(at indexPath: IndexPath) -> TaskModel {
         taskStore.task(at: indexPath)
     }
     
-    func toggleTaskCompletion(task: TaskModel) {
-        var updated = task
-        updated.isCompleted.toggle()
-        CoreDataManager.shared.addTask(from: updated)
+    func toggleTaskCompletion(id: Int64) {
+        taskStore.toggleCompleted(id: id)
     }
     
     private func findIndexPath(for task: TaskModel) -> IndexPath? {
@@ -94,7 +76,7 @@ final class TasksListInteractor: TasksListInteractorProtocol {
     }
 }
 
-extension TasksListInteractor: DataProviderDelegate {
+extension TasksListInteractor: TaskStoreDelegate {
     func didUpdate(_ update: TaskStoreUpdate) {
         presenter?.didUpdateTable(update: update, count: taskStore.numberOfTasks)
     }

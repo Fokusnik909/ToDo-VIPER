@@ -21,6 +21,10 @@ final class CoreDataManager {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
         })
+        
+        container.viewContext.automaticallyMergesChangesFromParent = true
+        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        
         return container
     }()
     
@@ -28,14 +32,16 @@ final class CoreDataManager {
         persistentContainer.viewContext
     }
     
-//    internal func newBackgroundContext() -> NSManagedObjectContext {
-//        persistentContainer.newBackgroundContext()
-//    }
+    internal func newBackgroundContext() -> NSManagedObjectContext {
+        let ctx = persistentContainer.newBackgroundContext()
+        ctx.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        return ctx
+    }
     
     internal func saveContext() {
         save(viewContext)
     }
-
+    
     // MARK: - ID генератор
     func generateLocalTaskID() -> Int64 {
         let base: Int64 = 100_000
@@ -53,24 +59,32 @@ final class CoreDataManager {
         }
         return base
     }
-
+    
     // MARK: - CRUD
-
+    
     func fetchTasks(completion: @escaping ([ToDoCoreData]) -> Void) {
-        viewContext.perform {
+        let context = newBackgroundContext()
+        context.perform {
+            assert(!Thread.isMainThread, " fetchTasks: выполняется на главном потоке!")
+            
             let request: NSFetchRequest<ToDoCoreData> = ToDoCoreData.fetchRequest()
             do {
-                let tasks = try self.viewContext.fetch(request)
-                completion(tasks)
+                let tasks = try context.fetch(request)
+                DispatchQueue.main.async {
+                    completion(tasks)
+                }
             } catch {
                 print("Failed to fetch tasks: \(error)")
-                completion([])
+                DispatchQueue.main.async {
+                    completion([])
+                }
             }
         }
     }
     
     func searchTasks(query: String, completion: @escaping ([ToDoCoreData]) -> Void) {
-        viewContext.perform {
+        let context = newBackgroundContext()
+        context.perform {
             let request: NSFetchRequest<ToDoCoreData> = ToDoCoreData.fetchRequest()
             
             if !query.isEmpty {
@@ -86,10 +100,9 @@ final class CoreDataManager {
             }
         }
     }
-
     
     func addTask(from model: TaskModel) {
-        let context = viewContext
+        let context = newBackgroundContext()
         context.perform {
             self._addOrUpdate(model, in: context)
             self.save(context)
@@ -97,37 +110,66 @@ final class CoreDataManager {
     }
     
     func addTasks(_ models: [TaskModel]) {
-        let context = viewContext
+        let context = newBackgroundContext()
         context.perform {
+            assert(!Thread.isMainThread, "addTasks: выполняется на главном потоке!")
             models.forEach { self._addOrUpdate($0, in: context) }
             self.save(context)
         }
     }
-
-    func deleteTask(with id: Int64) {
-        fetchTasks { tasks in
-            guard let taskToDelete = tasks.first(where: { $0.id == id }) else {
-                print("Task not found for id: \(id)")
-                return
+    
+    func toggleCompleted(objectID: NSManagedObjectID) {
+        let context = newBackgroundContext()
+        context.perform {
+            do {
+                if let obj = try? context.existingObject(with: objectID) as? ToDoCoreData {
+                    obj.isCompleted.toggle()
+                    try context.save()
+                }
+            } catch {
+                print("toggleCompleted error: \(error)")
             }
-            
-            self.viewContext.delete(taskToDelete)
-            self.saveContext()
-            print("Task deleted with id: \(id)")
         }
     }
     
-
-    func deleteAllTasks() {
-        viewContext.perform {
-            let fetchRequest: NSFetchRequest<NSFetchRequestResult> = ToDoCoreData.fetchRequest()
-            let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+    func deleteTask(with objectID: NSManagedObjectID) {
+        let context = newBackgroundContext()
+        context.perform {
             do {
-                try self.viewContext.execute(deleteRequest)
-                self.save(self.viewContext)
-                print("Все задачи удалены")
+                let obj = try context.existingObject(with: objectID)
+                context.delete(obj)
+                try context.save()
+                print("Task deleted")
             } catch {
-                print("Ошибка удаления: \(error.localizedDescription)")
+                print("Delete save error: \(error)")
+            }
+        }
+    }
+    
+    
+    func deleteAllTasks() {
+        let context = newBackgroundContext()
+        context.perform {
+            let fetchRequest: NSFetchRequest<NSFetchRequestResult> = ToDoCoreData.fetchRequest()
+            
+            let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+            deleteRequest.resultType = .resultTypeObjectIDs
+            
+            do {
+                let result = try context.execute(deleteRequest) as? NSBatchDeleteResult
+                if let objectIDs = result?.result as? [NSManagedObjectID], !objectIDs.isEmpty {
+                    let changes: [AnyHashable: Any] = [NSDeletedObjectsKey: objectIDs]
+                    
+                    let viewCtx = self.viewContext
+                    viewCtx.perform {
+                        NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [viewCtx])
+                    }
+                }
+                
+                try context.save()
+                print("Все задачи удалены ")
+            } catch {
+                print("Ошибка удаления: \(error)")
             }
         }
     }
@@ -151,8 +193,7 @@ final class CoreDataManager {
             existing.title = model.title
             existing.descriptionText = model.description
             existing.isCompleted = model.isCompleted
-            existing.userid = model.userId
-            existing.dateCreated = model.dateCreated
+            print("Обновляем задачу с id \(model.id)")
         } else {
             let task = ToDoCoreData(context: context)
             task.id = model.id
@@ -161,6 +202,7 @@ final class CoreDataManager {
             task.isCompleted = model.isCompleted
             task.userid = model.userId
             task.dateCreated = model.dateCreated
+            print("Создаём новую задачу с id \(model.id)")
         }
     }
 }

@@ -120,7 +120,7 @@ extension TasksListView: UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: TaskCell.reuseId, for: indexPath) as! TaskCell
         cell.configure(with: task)
         cell.onToggleCompletion = { [weak self] updatedTask in
-            self?.presenter.didToggleTaskCompletion(updatedTask)
+            self?.presenter.didToggleTaskCompletion(id: task.id)
         }
         return cell
     }
@@ -191,9 +191,8 @@ extension TasksListView: UITableViewDelegate {
         
         let task = presenter.task(at: indexPath)
         cell.configure(with: task, forPreview: false)
-        
 
-        return UITargetedPreview(view: cell)
+        return UITargetedPreview(view: cell.contentView)
     }
     
     private func makeContextMenu(for task: TaskModel, indexPath: IndexPath) -> UIMenu {
@@ -247,7 +246,7 @@ extension TasksListView: TasksListViewProtocol {
             tableView.performBatchUpdates {
                 tableView.deleteRows(at: update.deletedIndexes.map { IndexPath(row: $0, section: section) }, with: .fade)
                 tableView.insertRows(at: update.insertedIndexes.map { IndexPath(row: $0, section: section) }, with: .fade)
-                tableView.reloadRows(at: safeUpdatedIndexes.map { IndexPath(row: $0, section: section) }, with: .fade)
+                tableView.reloadRows(at: safeUpdatedIndexes.map { IndexPath(row: $0, section: section) }, with: .none)
             }
         }
         

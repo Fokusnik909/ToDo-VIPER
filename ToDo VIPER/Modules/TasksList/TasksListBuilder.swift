@@ -13,8 +13,8 @@ enum TasksListModuleBuilder {
         let router = TasksListRouter()
         let networkService = NetworkService()
         
-        let taskStore = DataProvider(context: CoreDataManager.shared.viewContext)
-        
+        let taskStore = TaskStore()
+                
         let interactor = TasksListInteractor(
             networkService: networkService,
             taskStore: taskStore  

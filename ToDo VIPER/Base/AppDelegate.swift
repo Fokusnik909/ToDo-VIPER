@@ -35,8 +35,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // MARK: UISceneSession Lifecycle
 
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
-        // Called when a new scene session is being created.
-        // Use this method to select a configuration to create the new scene with.
         return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
     }
 
@@ -45,4 +43,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
 }
+
+#if DEBUG
+extension UIWindow {
+    open override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
+        guard motion == .motionShake else { return }
+        let vc = DebugMenuViewController()
+        let nav = UINavigationController(rootViewController: vc)
+        rootViewController?.present(nav, animated: true)
+    }
+}
+#endif
 

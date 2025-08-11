@@ -13,7 +13,7 @@ struct TaskStoreUpdate {
     let deletedIndexes: IndexSet
 }
 
-protocol DataProviderDelegate: AnyObject {
+protocol TaskStoreDelegate: AnyObject {
     func didUpdate(_ update: TaskStoreUpdate)
 }
 
@@ -21,11 +21,12 @@ protocol TaskManagerProtocol {
     var numberOfTasks: Int { get }
     func task(at indexPath: IndexPath) -> TaskModel
     func searchTasks(with query: String)
-    func deleteTask(at indexPath: IndexPath)
+    func toggleCompleted(id: Int64)
+    func deleteTask(id: Int64)
 }
 
-final class DataProvider: NSObject {
-    weak var delegate: DataProviderDelegate?
+final class TaskStore: NSObject {
+    weak var delegate: TaskStoreDelegate?
     
     private let context: NSManagedObjectContext
     private let dataStore: CoreDataManager
@@ -36,7 +37,10 @@ final class DataProvider: NSObject {
     
     private lazy var fetchedResultsController: NSFetchedResultsController<ToDoCoreData> = {
         let fetchRequest = NSFetchRequest<ToDoCoreData>(entityName: "ToDoCoreData")
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "dateCreated", ascending: true)]
+        fetchRequest.sortDescriptors = [
+            NSSortDescriptor(key: "dateCreated", ascending: true),
+            NSSortDescriptor(key: "id", ascending: true)
+        ]
         
         let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest,
                                                                   managedObjectContext: context,
@@ -56,15 +60,28 @@ final class DataProvider: NSObject {
         return fetchedResultsController
     }()
     
-    init(context: NSManagedObjectContext, delegate: DataProviderDelegate? = nil) {
-        self.context = context
-        self.dataStore = CoreDataManager.shared
+    init(dataStore: CoreDataManager = .shared, delegate: TaskStoreDelegate? = nil) {
+        self.dataStore = dataStore
+        self.context = dataStore.viewContext
         self.delegate = delegate
         super.init()
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(contextDidSave(_:)),
+            name: .NSManagedObjectContextDidSave,
+            object: nil
+        )
+    }
+
+    @objc private func contextDidSave(_ notification: Notification) {
+        context.perform {
+            self.context.mergeChanges(fromContextDidSave: notification)
+        }
     }
 }
 
-extension DataProvider: TaskManagerProtocol {
+extension TaskStore: TaskManagerProtocol {
     var numberOfTasks: Int {
         fetchedResultsController.fetchedObjects?.count ?? 0
     }
@@ -76,7 +93,10 @@ extension DataProvider: TaskManagerProtocol {
     
     func searchTasks(with query: String) {
         let fetchRequest = NSFetchRequest<ToDoCoreData>(entityName: "ToDoCoreData")
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "dateCreated", ascending: true)]
+        fetchRequest.sortDescriptors = [
+            NSSortDescriptor(key: "dateCreated", ascending: true),
+            NSSortDescriptor(key: "id", ascending: true)
+        ]
 
         if !query.isEmpty {
             fetchRequest.predicate = NSPredicate(format: "title CONTAINS[cd] %@", query)
@@ -98,21 +118,22 @@ extension DataProvider: TaskManagerProtocol {
         }
     }
     
-    func deleteTask(at indexPath: IndexPath) {
-        let task = fetchedResultsController.object(at: indexPath)
-        context.delete(task)
-        
-        do {
-            try context.save()
-        } catch {
-            print("Failed to save after deleting task: \(error)")
+    func deleteTask(id: Int64) { 
+        if let obj = fetchedResultsController.fetchedObjects?.first(where: { $0.id == id }) {
+            dataStore.deleteTask(with: obj.objectID)
+        }
+    }
+    
+    func toggleCompleted(id: Int64) {
+        if let obj = fetchedResultsController.fetchedObjects?.first(where: { $0.id == id }) {
+            dataStore.toggleCompleted(objectID: obj.objectID)
         }
     }
     
 }
 
 
-extension DataProvider: NSFetchedResultsControllerDelegate {
+extension TaskStore: NSFetchedResultsControllerDelegate {
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         insertedIndexes = []
         updatedIndexes = []
@@ -128,11 +149,16 @@ extension DataProvider: NSFetchedResultsControllerDelegate {
         )
 
         let isFullReload = deletedIndexes.isEmpty && updatedIndexes.isEmpty && !insertedIndexes.isEmpty
-        if isFullReload {
-            delegate?.didUpdate(TaskStoreUpdate(insertedIndexes: [], updatedIndexes: [], deletedIndexes: []))
-        } else {
-            delegate?.didUpdate(update)
+        
+        DispatchQueue.main.async {
+            assert(Thread.isMainThread, "controllerDidChangeContent: обновление UI не на главном потоке!")
+            self.delegate?.didUpdate(
+                isFullReload
+                ? TaskStoreUpdate(insertedIndexes: [], updatedIndexes: [], deletedIndexes: [])
+                : update
+            )
         }
+       
     }
 
     
@@ -146,7 +172,12 @@ extension DataProvider: NSFetchedResultsControllerDelegate {
             if let newIndexPath = newIndexPath {
                 insertedIndexes.insert(newIndexPath.item)
             }
-        case.update:
+        case .move:
+            if let from = indexPath, let to = newIndexPath {
+                deletedIndexes.insert(from.item)
+                insertedIndexes.insert(to.item)
+            }
+        case .update:
             if let indexPath = indexPath {
                 updatedIndexes.insert(indexPath.item)
             }

@@ -62,6 +62,8 @@ final class TaskCell: UITableViewCell {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupLayout()
         checkboxButton.addTarget(self, action: #selector(checkboxTapped), for: .touchUpInside)
+        containerView.clipsToBounds = true
+        contentView.backgroundColor = .blackTD
         backgroundColor = .blackTD
         selectionStyle = .none
     }
@@ -123,27 +125,30 @@ final class TaskCell: UITableViewCell {
     
     private func setupLayout() {
         contentView.addSubview(containerView)
-        contentView.addSubview(checkboxButton)
-        contentView.addSubview(titleLabel)
-        contentView.addSubview(descriptionLabel)
-        contentView.addSubview(dateLabel)
-        
-        titleLeadingWithCheckbox = titleLabel.leadingAnchor.constraint(equalTo: checkboxButton.trailingAnchor, constant: 8)
-        titleLeadingWithoutCheckbox = titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16)
+        containerView.addSubview(checkboxButton)
+        containerView.addSubview(titleLabel)
+        containerView.addSubview(descriptionLabel)
+        containerView.addSubview(dateLabel)
         
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor),
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            containerView.heightAnchor.constraint(equalToConstant: 90),
-            
-            checkboxButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            checkboxButton.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
+            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+        ])
+        
+        titleLeadingWithCheckbox = titleLabel.leadingAnchor.constraint(equalTo: checkboxButton.trailingAnchor, constant: 8)
+        titleLeadingWithoutCheckbox = titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16)
+        
+        
+        NSLayoutConstraint.activate([
+            checkboxButton.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
+            checkboxButton.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 16),
             checkboxButton.widthAnchor.constraint(equalToConstant: 24),
             checkboxButton.heightAnchor.constraint(equalToConstant: 24),
             
-            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            titleLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
             
             descriptionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 6),
             descriptionLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
@@ -152,7 +157,16 @@ final class TaskCell: UITableViewCell {
             dateLabel.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 6),
             dateLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             dateLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
-            dateLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
+            dateLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -12)
         ])
+        
+        containerView.backgroundColor = .blackTD
+        containerView.layer.cornerRadius = 16
+        containerView.layer.masksToBounds = true
+        
     }
+    
+    
+    
+    
 }
