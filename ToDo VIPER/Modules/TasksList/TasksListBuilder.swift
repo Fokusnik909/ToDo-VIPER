@@ -13,7 +13,7 @@ enum TasksListModuleBuilder {
         let router = TasksListRouter()
         let networkService = NetworkService()
         
-        let taskStore = DataProvider()
+        let taskStore = TaskStore()
                 
         let interactor = TasksListInteractor(
             networkService: networkService,

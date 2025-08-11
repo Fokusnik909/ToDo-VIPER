@@ -13,7 +13,7 @@ struct TaskStoreUpdate {
     let deletedIndexes: IndexSet
 }
 
-protocol DataProviderDelegate: AnyObject {
+protocol TaskStoreDelegate: AnyObject {
     func didUpdate(_ update: TaskStoreUpdate)
 }
 
@@ -25,8 +25,8 @@ protocol TaskManagerProtocol {
     func deleteTask(id: Int64)
 }
 
-final class DataProvider: NSObject {
-    weak var delegate: DataProviderDelegate?
+final class TaskStore: NSObject {
+    weak var delegate: TaskStoreDelegate?
     
     private let context: NSManagedObjectContext
     private let dataStore: CoreDataManager
@@ -60,7 +60,7 @@ final class DataProvider: NSObject {
         return fetchedResultsController
     }()
     
-    init(dataStore: CoreDataManager = .shared, delegate: DataProviderDelegate? = nil) {
+    init(dataStore: CoreDataManager = .shared, delegate: TaskStoreDelegate? = nil) {
         self.dataStore = dataStore
         self.context = dataStore.viewContext
         self.delegate = delegate
@@ -81,7 +81,7 @@ final class DataProvider: NSObject {
     }
 }
 
-extension DataProvider: TaskManagerProtocol {
+extension TaskStore: TaskManagerProtocol {
     var numberOfTasks: Int {
         fetchedResultsController.fetchedObjects?.count ?? 0
     }
@@ -133,7 +133,7 @@ extension DataProvider: TaskManagerProtocol {
 }
 
 
-extension DataProvider: NSFetchedResultsControllerDelegate {
+extension TaskStore: NSFetchedResultsControllerDelegate {
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         insertedIndexes = []
         updatedIndexes = []

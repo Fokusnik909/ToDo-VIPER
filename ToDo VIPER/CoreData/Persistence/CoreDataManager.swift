@@ -41,7 +41,7 @@ final class CoreDataManager {
     internal func saveContext() {
         save(viewContext)
     }
-
+    
     // MARK: - ID генератор
     func generateLocalTaskID() -> Int64 {
         let base: Int64 = 100_000
@@ -59,9 +59,9 @@ final class CoreDataManager {
         }
         return base
     }
-
+    
     // MARK: - CRUD
-
+    
     func fetchTasks(completion: @escaping ([ToDoCoreData]) -> Void) {
         let context = newBackgroundContext()
         context.perform {
@@ -100,7 +100,6 @@ final class CoreDataManager {
             }
         }
     }
-
     
     func addTask(from model: TaskModel) {
         let context = newBackgroundContext()
@@ -140,7 +139,7 @@ final class CoreDataManager {
                 let obj = try context.existingObject(with: objectID)
                 context.delete(obj)
                 try context.save()
-                print("Task deleted: \(objectID)")
+                print("Task deleted")
             } catch {
                 print("Delete save error: \(error)")
             }
@@ -160,7 +159,7 @@ final class CoreDataManager {
                 let result = try context.execute(deleteRequest) as? NSBatchDeleteResult
                 if let objectIDs = result?.result as? [NSManagedObjectID], !objectIDs.isEmpty {
                     let changes: [AnyHashable: Any] = [NSDeletedObjectsKey: objectIDs]
-
+                    
                     let viewCtx = self.viewContext
                     viewCtx.perform {
                         NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [viewCtx])
@@ -168,7 +167,7 @@ final class CoreDataManager {
                 }
                 
                 try context.save()
-                print("Все задачи удалены (batch delete + merge)")
+                print("Все задачи удалены ")
             } catch {
                 print("Ошибка удаления: \(error)")
             }

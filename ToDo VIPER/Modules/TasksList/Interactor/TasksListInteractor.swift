@@ -76,7 +76,7 @@ final class TasksListInteractor: TasksListInteractorProtocol {
     }
 }
 
-extension TasksListInteractor: DataProviderDelegate {
+extension TasksListInteractor: TaskStoreDelegate {
     func didUpdate(_ update: TaskStoreUpdate) {
         presenter?.didUpdateTable(update: update, count: taskStore.numberOfTasks)
     }
